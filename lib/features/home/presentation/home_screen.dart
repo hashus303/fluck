@@ -1,13 +1,340 @@
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+import '../../../core/models/flock.dart';
+import '../../../core/services/firebase_service.dart';
+import '../../../core/services/geo.dart';
+import '../../../core/services/location_controller.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/flock_widgets.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../flock/data/flock_doc.dart';
+import '../../flock/data/flock_repository.dart';
+import '../../notifications/data/notification_repository.dart';
+import '../../notifications/presentation/notifications_screen.dart';
+import '../../profile/data/user_profile_repository.dart';
+
+class HomeScreen extends StatefulWidget {
+  final void Function(Flock)? onOpenInvite;
+  const HomeScreen({super.key, this.onOpenInvite});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _filter = 'all';
+  double? _radiusKm = 25; // null = her yer
+  String? _busyJoinId; // katılma işlemi süren flock
+
+  String? _myUid;
+  String _myName = '';
+
+  static const _radiusOptions = <double?>[10, 25, 100, null];
+
+  bool get _live => FirebaseService.instance.isInitialized && _myUid != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (FirebaseService.instance.isInitialized) {
+      _myUid = AuthRepository.instance.currentUser?.uid;
+      if (_myUid != null) {
+        UserProfileRepository.instance.fetch(_myUid!).then((p) {
+          if (mounted && p != null) setState(() => _myName = p.name);
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
-      body: const Center(child: Text('Home feature')),
+    final loc = LocationScope.of(context);
+
+    if (_live) {
+      return StreamBuilder<List<FlockDoc>>(
+        stream: FlockRepository.instance.watchActive(),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.brand));
+          }
+          final docs = snap.data ?? const <FlockDoc>[];
+          final flocks = docs.map((d) => d.toFlock()).toList();
+          return _feed(loc, flocks, joinedIds: {
+            for (final d in docs)
+              if (d.memberUids.contains(_myUid)) d.id,
+          });
+        },
+      );
+    }
+
+    // Firebase yoksa örnek veriyle çalış (çevrimdışı mod).
+    return _feed(loc, kFlocks, joinedIds: const {});
+  }
+
+  Widget _feed(LocationController loc, List<Flock> source, {required Set<String> joinedIds}) {
+    final t = AppL10n.of(context);
+
+    final ranked = source
+        .map((f) => (flock: f, km: haversineKm(loc.point, f.point)))
+        .where((e) => _filter == 'all' || e.flock.vibeId == _filter)
+        .where((e) => _radiusKm == null || e.km <= _radiusKm!)
+        .toList()
+      ..sort((a, b) => a.km.compareTo(b.km));
+
+    return SafeArea(
+      bottom: false,
+      child: CustomScrollView(slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Container(width: 7, height: 7, decoration: const BoxDecoration(
+                    color: AppColors.success, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                Text(t.flocksLiveNearYou(ranked.length),
+                    style: AppText.body(13, weight: FontWeight.w700, color: AppColors.success)),
+                const Spacer(),
+                if (_live) _bell(),
+              ]),
+              const SizedBox(height: 6),
+              Text(t.findYourFlock, style: AppText.display(30)),
+              const SizedBox(height: 3),
+              Text(t.homeSubtitle, style: AppText.body(14, color: AppColors.textMuted)),
+            ]),
+          ),
+        ),
+        // Konum + GPS butonu
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            child: Row(children: [
+              const Icon(Icons.location_on_rounded, size: 18, color: AppColors.brand),
+              const SizedBox(width: 5),
+              Text(loc.isGps ? t.locMyLocation : loc.label,
+                  style: AppText.body(14, weight: FontWeight.w800, color: AppColors.textStrong)),
+              const Spacer(),
+              GestureDetector(
+                onTap: loc.locating ? null : () => _useGps(loc),
+                child: Row(children: [
+                  loc.locating
+                      ? const SizedBox(width: 14, height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brand))
+                      : const Icon(Icons.my_location, size: 16, color: AppColors.brand),
+                  const SizedBox(width: 5),
+                  Text(t.locUseGps,
+                      style: AppText.body(12.5, weight: FontWeight.w700, color: AppColors.brand)),
+                ]),
+              ),
+            ]),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
+            child: Row(children: [
+              for (final r in _radiusOptions) ...[
+                _RadiusChip(
+                  label: r == null ? t.locAnywhere : t.locWithin(r.round()),
+                  selected: _radiusKm == r,
+                  onTap: () => setState(() => _radiusKm = r),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ]),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+            child: Row(children: [
+              _AllChip(label: t.allVibes, selected: _filter == 'all', onTap: () => setState(() => _filter = 'all')),
+              const SizedBox(width: 8),
+              for (final v in kVibes) ...[
+                _VibeChip(
+                  vibe: v,
+                  label: vibeLabel(t, v.id),
+                  selected: _filter == v.id,
+                  onTap: () => setState(() => _filter = _filter == v.id ? 'all' : v.id),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ]),
+          ),
+        ),
+        if (ranked.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+              child: Center(
+                child: Text(t.locNoneInRange,
+                    textAlign: TextAlign.center,
+                    style: AppText.body(14, color: AppColors.textMuted)),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            sliver: SliverList.separated(
+              itemCount: ranked.length,
+              separatorBuilder: (_, i) => const SizedBox(height: 14),
+              itemBuilder: (_, i) {
+                final e = ranked[i];
+                final joined = joinedIds.contains(e.flock.id);
+                return InviteCard(
+                  flock: e.flock,
+                  distance: distanceLabel(e.km),
+                  joined: joined,
+                  onJoin: _busyJoinId == e.flock.id ? null : () => _join(e.flock),
+                  onTap: () => widget.onOpenInvite?.call(e.flock),
+                );
+              },
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _bell() {
+    return StreamBuilder<int>(
+      stream: NotificationRepository.instance.unreadCount(_myUid!),
+      builder: (context, snap) {
+        final n = snap.data ?? 0;
+        return GestureDetector(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => NotificationsScreen(uid: _myUid!),
+          )),
+          child: Stack(clipBehavior: Clip.none, children: [
+            const Icon(Icons.notifications_none_rounded, size: 26, color: AppColors.textStrong),
+            if (n > 0)
+              Positioned(
+                right: -3, top: -3,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  decoration: const BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: Text(n > 9 ? '9+' : '$n',
+                      style: AppText.body(10, weight: FontWeight.w800, color: Colors.white)),
+                ),
+              ),
+          ]),
+        );
+      },
+    );
+  }
+
+  Future<void> _useGps(LocationController loc) async {
+    final ok = await loc.useDeviceLocation();
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(AppL10n.of(context).locGpsFailed)));
+    }
+  }
+
+  Future<void> _join(Flock flock) async {
+    final t = AppL10n.of(context);
+    if (!_live) {
+      // Çevrimdışı modda yalnızca görsel onay.
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.joinedBadge)));
+      return;
+    }
+    setState(() => _busyJoinId = flock.id);
+    try {
+      await FlockRepository.instance.join(flock.id, _myUid!, _myName.isEmpty ? 'Flocker' : _myName);
+    } on FlockJoinException catch (e) {
+      if (mounted) {
+        final msg = e.code == 'full' ? t.flockFull : t.errGeneric;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.errGeneric)));
+      }
+    } finally {
+      if (mounted) setState(() => _busyJoinId = null);
+    }
+  }
+}
+
+class _RadiusChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _RadiusChip({required this.label, required this.selected, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.ink900 : AppColors.surfaceCard,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: selected ? AppColors.ink900 : AppColors.borderSubtle, width: 1.5),
+        ),
+        child: Text(label,
+            style: AppText.body(12.5, weight: FontWeight.w700,
+                color: selected ? Colors.white : AppColors.textBody)),
+      ),
+    );
+  }
+}
+
+class _AllChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _AllChip({required this.label, required this.selected, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.brand : AppColors.surfaceCard,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: selected ? AppColors.brand : AppColors.borderSubtle, width: 1.5),
+        ),
+        child: Text(label,
+            style: AppText.body(13, weight: FontWeight.w700,
+                color: selected ? Colors.white : AppColors.textBody)),
+      ),
+    );
+  }
+}
+
+class _VibeChip extends StatelessWidget {
+  final Vibe vibe;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _VibeChip({required this.vibe, required this.label, required this.selected, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? vibe.color : AppColors.surfaceCard,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: selected ? vibe.color : AppColors.borderSubtle, width: 1.5),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(vibe.emoji, style: const TextStyle(fontSize: 15)),
+          const SizedBox(width: 7),
+          Text(label,
+              style: AppText.body(13, weight: FontWeight.w700,
+                  color: selected ? Colors.white : AppColors.textBody)),
+        ]),
+      ),
     );
   }
 }

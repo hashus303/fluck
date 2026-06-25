@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- İnternet (Firestore, OSM harita, geocoding) + konum (geolocator). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
-        android:label="fluck"
+        android:label="Flock"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

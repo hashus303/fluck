@@ -21,6 +21,8 @@ class FirebaseService {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       _initialized = true;
+      // ignore: avoid_print
+      print('Firebase başlatıldı: ${Firebase.app().options.projectId}');
     } catch (e) {
       // ignore: avoid_print
       print('Firebase başlatılamadı (yapılandırma eksik olabilir): $e');

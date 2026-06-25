@@ -1,0 +1,26 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fluck-app-fv0kh",
+          "appId": "1:182331722242:android:bc835ac0fac1b69435751b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fluck-app-fv0kh",
+          "configurations": {
+            "android": "1:182331722242:android:bc835ac0fac1b69435751b",
+            "ios": "1:182331722242:ios:db7cc4849d193ba035751b",
+            "web": "1:182331722242:web:b8a7b478d774728935751b"
+          }
+        }
+      }
+    }
+  }
+}

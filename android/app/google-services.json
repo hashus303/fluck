@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "182331722242",
+    "project_id": "fluck-app-fv0kh",
+    "storage_bucket": "fluck-app-fv0kh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:182331722242:android:bc835ac0fac1b69435751b",
+        "android_client_info": {
+          "package_name": "com.hashus303.fluck"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtNexiObCNaurgfpFlqFj-zf5vpWkAzGY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
