@@ -40,8 +40,11 @@ class NotificationRepository {
       FirebaseFirestore.instance.collection('users').doc(uid).collection('notifications');
 
   /// Birinin flock'a katıldığını host'a bildirir.
+  /// [actorUid] yazan kişinin kimliği — Firestore kuralı sahteciliği engellemek
+  /// için bunun request.auth.uid ile eşleşmesini ister.
   Future<void> notifyJoin({
     required String hostUid,
+    required String actorUid,
     required String actorName,
     required String flockId,
     required String venue,
@@ -50,6 +53,7 @@ class NotificationRepository {
       'type': 'join',
       'flockId': flockId,
       'venue': venue,
+      'actorUid': actorUid,
       'actorName': actorName,
       'read': false,
       'createdAt': FieldValue.serverTimestamp(),

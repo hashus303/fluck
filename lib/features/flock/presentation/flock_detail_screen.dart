@@ -81,14 +81,14 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
         vibeId: f.vibeId,
         venue: f.venue,
         area: f.area,
-        hostUid: '',
+        hostUid: f.members.isEmpty ? '' : 'm0', // ilk üye host kabul edilir
         hostName: f.host,
         verifiedHost: f.verifiedHost,
         lat: f.lat,
         lng: f.lng,
         total: f.total,
-        memberUids: const [],
-        memberNames: [for (final m in f.members) m.name],
+        memberUids: [for (var i = 0; i < f.members.length; i++) 'm$i'],
+        memberNames: {for (var i = 0; i < f.members.length; i++) 'm$i': f.members[i].name},
         expiresAt: DateTime.now().add(Duration(minutes: f.minutesLeft)),
       );
 
@@ -179,12 +179,15 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                 const SizedBox(height: 22),
                 Text(t.membersTitle, style: AppText.eyebrow()),
                 const SizedBox(height: 8),
-                Text(t.joinedCount(doc.memberNames.length, doc.total),
+                Text(t.joinedCount(doc.memberUids.length, doc.total),
                     style: AppText.body(13.5, weight: FontWeight.w700, color: AppColors.textMuted)),
                 const SizedBox(height: 12),
                 Wrap(spacing: 10, runSpacing: 12, children: [
-                  for (var i = 0; i < doc.memberNames.length; i++)
-                    _MemberChip(name: doc.memberNames[i], isHost: i == 0),
+                  for (var i = 0; i < doc.memberUids.length; i++)
+                    _MemberChip(
+                      name: doc.memberNames[doc.memberUids[i]] ?? '',
+                      isHost: doc.memberUids[i] == doc.hostUid,
+                    ),
                 ]),
                 const SizedBox(height: 8),
               ],

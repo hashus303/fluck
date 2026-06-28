@@ -56,7 +56,7 @@ class FlockRepository {
       'lng': lng,
       'total': total,
       'memberUids': [hostUid],
-      'memberNames': [hostName],
+      'memberNames': {hostUid: hostName},
       'createdAt': FieldValue.serverTimestamp(),
       'expiresAt': Timestamp.fromDate(now.add(flockLifetime)),
     });
@@ -84,7 +84,7 @@ class FlockRepository {
       added = true;
       tx.update(ref, {
         'memberUids': FieldValue.arrayUnion([uid]),
-        'memberNames': FieldValue.arrayUnion([name]),
+        'memberNames.$uid': name,
       });
     });
 
@@ -93,6 +93,7 @@ class FlockRepository {
       try {
         await NotificationRepository.instance.notifyJoin(
           hostUid: hostUid!,
+          actorUid: uid,
           actorName: name,
           flockId: flockId,
           venue: venue,
@@ -114,7 +115,7 @@ class FlockRepository {
       }
       tx.update(ref, {
         'memberUids': FieldValue.arrayRemove([uid]),
-        'memberNames': FieldValue.arrayRemove([name]),
+        'memberNames.$uid': FieldValue.delete(),
       });
     });
   }

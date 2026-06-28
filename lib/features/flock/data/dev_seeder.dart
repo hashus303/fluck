@@ -44,7 +44,10 @@ class DevSeeder {
         'lng': s['lng'],
         'total': s['total'],
         'memberUids': [for (var i = 0; i < (s['members'] as List).length; i++) 'npc_${s['venue']}_$i'],
-        'memberNames': s['members'],
+        'memberNames': {
+          for (var i = 0; i < (s['members'] as List).length; i++)
+            'npc_${s['venue']}_$i': (s['members'] as List)[i],
+        },
         'createdAt': FieldValue.serverTimestamp(),
         'expiresAt': Timestamp.fromDate(now.add(Duration(minutes: s['mins'] as int))),
         'isSeed': true,

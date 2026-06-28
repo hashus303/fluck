@@ -9,22 +9,28 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
 
-      // Bildirimler — herkes (ör. flock'a katılan) host'a bildirim oluşturabilir;
-      // sadece sahibi okuyabilir/işaretleyebilir/silebilir.
+      // Bildirimler — herkes (ör. flock'a katılan) host'a bildirim oluşturabilir,
+      // ama yalnızca kendi adına (actorUid == kendisi) — sahtecilik engellenir.
+      // Sadece sahibi okuyabilir/işaretleyebilir/silebilir.
       match /notifications/{notifId} {
-        allow create: if request.auth != null;
+        allow create: if request.auth != null
+                      && request.resource.data.actorUid == request.auth.uid;
         allow read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     // Flock'lar — giriş yapan herkes görebilir (keşif).
-    // Oluşturan kişi host olmalı; katılma/ayrılma için güncelleme serbest;
-    // silme yalnızca host'a açık.
+    // Oluşturan kişi host olmalı. Güncelleme YALNIZCA üye listesi alanlarını
+    // değiştirebilir (host/mekan/süre/konum vb. dokunulamaz) ve kapasiteyi
+    // aşamaz. Silme yalnızca host'a açık.
     match /flocks/{flockId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
-      allow update: if request.auth != null;
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['memberUids', 'memberNames'])
+                    && request.resource.data.memberUids.size() <= resource.data.total;
       allow delete: if request.auth != null
                     && resource.data.hostUid == request.auth.uid;
     }
