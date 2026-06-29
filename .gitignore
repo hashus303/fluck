@@ -49,3 +49,7 @@ app.*.map.json
 .demo_account
 .fb_project
 .claude/
+
+# TestSprite (tool-generated test artifacts)
+testsprite_tests/
+.testsprite/
