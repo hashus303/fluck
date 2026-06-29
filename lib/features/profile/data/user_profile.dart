@@ -45,4 +45,23 @@ class UserProfile {
         onboardingComplete: (m['onboardingComplete'] ?? false) as bool,
         email: m['email'] as String?,
       );
+
+  bool get isVerified => verificationStatus == 'verified';
+  bool get isVerificationPending => verificationStatus == 'pending';
+
+  /// Profilin gerçek sinyallerinden türetilen güven skoru (0-100).
+  /// Şimdilik kimlik doğrulama + foto/selfie + onboarding'e dayanır; ileride
+  /// sunucu tarafı (tamamlanan flock'lar, çift yönlü puanlar) bunu genişletir.
+  int get trustScore {
+    var s = 30;
+    if (isVerified) {
+      s += 30;
+    } else if (isVerificationPending) {
+      s += 10;
+    }
+    if (photoProvided) s += 15;
+    if (selfieProvided) s += 15;
+    if (onboardingComplete) s += 10;
+    return s.clamp(0, 100);
+  }
 }

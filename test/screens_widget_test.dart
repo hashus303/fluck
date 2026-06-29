@@ -61,7 +61,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('90'), findsOneWidget); // sabit trust score
+      // Çevrimdışı önizleme profili tam doğrulanmış → skor 100, kimlik doğrulanmış.
+      expect(find.text('100'), findsOneWidget);
+      expect(find.text('Identity verified'), findsOneWidget);
       expect(find.text('SOS'), findsOneWidget);
 
       await tester.longPress(find.text('SOS'));
