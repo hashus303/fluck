@@ -83,11 +83,11 @@ users/{uid}
 
 flocks/{flockId}
   vibeId, venue, area, hostUid, hostName, verifiedHost,
-  lat, lng, total, memberUids[], memberNames[],
+  lat, lng, total, memberUids[], memberNames{uid:name},
   createdAt, expiresAt, isSeed?(dev)
 ```
 
-**Kurallar** (`firestore.rules`): users okuma=auth, yazma=sahibi. notifications create=auth, oku/güncelle/sil=sahibi. flocks oku=auth, create=host kendisi, **update=auth (çok geniş — bkz. STATUS riskler)**, delete=host.
+**Kurallar** (`firestore.rules`): users okuma=auth, yazma=sahibi. notifications create=auth (sadece aktör kendisi ise), oku/güncelle/sil=sahibi. flocks oku=auth, create=host kendisi, update=auth (sadece `memberUids` ve `memberNames` güncellemelerine izin verilir, host/süre vb. değiştirilemez ve kapasite aşılamaz), delete=host.
 
 ## Önemli akışlar
 

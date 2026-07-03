@@ -17,8 +17,8 @@
 
 ## 🟡 Kısmen / sadece UI (backend yok)
 
-- **Kimlik doğrulama** — `verificationStatus` + `photoProvided/selfieProvided` *bayrakları* var; **TC kimlik alanı ve gerçek doğrulama akışı yok**. Güvenlik ekranındaki "Kimlik doğrulandı" kartı sabit/dekoratif.
-- **Trust score** — güvenlik ekranında **sabit "90"**; profilde `trustScore` alanı yok, hesaplama yok.
+- **Kimlik doğrulama** — `verificationStatus` + `photoProvided/selfieProvided` *bayrakları* var; **TC kimlik alanı ve gerçek doğrulama akışı yok**. Güvenlik ekranındaki kimlik doğrulama kartı artık kullanıcının gerçek doğrulama durumunu yansıtıyor.
+- **Trust score** — güvenlik ekranındaki trust score artık kullanıcının profilindeki sinyallere (onboarding, kimlik doğrulama durumu, fotoğraf ve selfie sağlama durumları) göre dinamik olarak hesaplanıyor, ancak bu sinyallerin kendileri henüz gerçek bir doğrulama akışına (OCR/yüz tanıma gibi) bağlı değil.
 - **SOS butonu** — var ama uzun basınca **sadece snackbar** gösterir; 112 bağlantısı yok.
 
 ## ❌ Henüz yok (vizyonda var, kodda yok)
@@ -29,29 +29,30 @@
 - **Check-in sistemi**
 - **SOS → 112 / acil servis entegrasyonu**
 - **AI sohbet moderasyonu** — uygulamada sohbet/chat hiç yok
-- **Hesap puanlama (trust score) hesaplama mantığı**
 - **Cloud Functions** — expiry temizliği, doğrulama, moderasyon sunucu tarafı yok
 - **FCM / push bildirim** — bildirimler yalnızca uygulama-içi (Firestore), push yok
 - **"Min 3 kişi" gerçek zorlama** — oluştururken hedef boyut min 3, ama buluşmanın gerçekten 3 kişiye ulaşması zorlanmıyor
 
+## 🟢 Çözülen riskler / hatalar (Tamamlandı)
+
+1. **Firestore: flock `update` çok açık** — `firestore.rules` güncellenerek yalnızca `memberUids` ve `memberNames` alanlarının güncellenebilmesi sağlandı. Diğer alanlar (hostUid, expiresAt vb.) kilitlendi. Kapasite kontrolü eklendi.
+2. **Paralel diziler `memberUids`/`memberNames` + `arrayUnion`** — Üye listesindeki çakışma ve bozulma problemleri, `memberNames` alanının list yerine `uid -> name` map tipine geçirilmesiyle çözüldü. Eski veri yapısına geriye dönük uyumluluk korundu.
+3. **Bildirim `create` açık** — Bildirim oluştururken `actorUid`'nin, isteği gönderen kullanıcının auth UID'si ile eşleşmesi zorunluluğu getirilerek sahtecilik engellendi.
+4. **Güvenlik / Trust Score entegrasyonu** — Güvenlik ekranındaki trust score ve kimlik doğrulama durum kartı, statik değerler yerine kullanıcının profilindeki gerçek verilerden beslenecek şekilde dinamikleştirildi.
+
 ## 🔴 Bilinen riskler / hatalar (kod incelemesinden)
 
-1. **Firestore: flock `update` çok açık** — `firestore.rules:27` `allow update: if request.auth != null;`. Herhangi bir kullanıcı herhangi bir flock'un her alanını (hostUid dahil) değiştirebilir. → sadece `memberUids/memberNames` değişimine kısıtla (`affectedKeys().hasOnly([...])`).
-2. **Paralel diziler `memberUids`/`memberNames` + `arrayUnion`** — `flock_repository.dart:85`. Aynı isim tekilleşir → sayı tutmaz; `leave()`'de `arrayRemove([name])` aynı isimli herkesi siler. → tek `members:[{uid,name}]` yapısı ya da transaction içinde oku-değiştir-yaz.
-3. **Bildirim `create` açık** — `firestore.rules:15`. Spam'e açık.
-4. **`silent` parametresi ölü** — `location_controller.dart:42`. `load()` "sessiz GPS" beklerken ilk açılışta izin penceresi fırlar.
-5. **`_label` hiç güncellenmiyor** — `location_controller.dart:11`. GPS'te bile "İstanbul". `geocoding_service` ile güncellenebilir.
-6. **Mesafe filtresi tamamen istemcide** — `flock_repository.dart:19` tüm aktif flock'ları çeker. Ölçeklenmez → ileride geohash/GeoFirestore.
-7. **Firebase anahtarları repoda** — sır değil ama güvenlik tamamen kurallara bağlı → **App Check** önerilir.
+1. **`silent` parametresi ölü** — `location_controller.dart:42`. `load()` "sessiz GPS" beklerken ilk açılışta izin penceresi fırlar.
+2. **`_label` hiç güncellenmiyor** — `location_controller.dart:11`. GPS'te bile "İstanbul". `geocoding_service` ile güncellenebilir.
+3. **Mesafe filtresi tamamen istemcide** — `flock_repository.dart:19` tüm aktif flock'ları çeker. Ölçeklenmez → ileride geohash/GeoFirestore.
+4. **Firebase anahtarları repoda** — sır değil ama güvenlik tamamen kurallara bağlı → **App Check** önerilir.
 
 ## Öneri sırası (yapılırsa)
 
-1. Firestore `update`/`create` kurallarını sıkılaştır (güvenlik, küçük iş)
-2. Üye listesini tek yapıya çevir (veri bütünlüğü)
-3. Trust score + kimlik doğrulamayı gerçek veriye bağla
-4. SOS, check-in, konum paylaşımı (güvenlik MVP'si)
-5. Cloud Functions (expiry temizliği) + FCM push
-6. AI moderasyon + partner mekan altyapısı
+1. Konum/adres etiketinin (`_label`) GPS konumuna göre güncellenmesini sağlama
+2. SOS, check-in, konum paylaşımı (güvenlik MVP'si)
+3. Cloud Functions (expiry temizliği) + FCM push
+4. AI moderasyon + partner mekan altyapısı
 
 ---
 İlgili: [PRODUCT.md](PRODUCT.md) · [ARCHITECTURE.md](ARCHITECTURE.md)
