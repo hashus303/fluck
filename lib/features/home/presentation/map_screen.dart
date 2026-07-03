@@ -1,124 +1,130 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as ll;
 
 import '../../../core/models/flock.dart';
+import '../../../core/services/firebase_service.dart';
+import '../../../core/services/geo.dart';
+import '../../../core/services/location_controller.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
-import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart';
+import '../../flock/data/flock_doc.dart';
+import '../../flock/data/flock_repository.dart';
 
-/// Harita ekranı — yakındaki flock'ları pin'lerle gösterir.
-///
-/// Not: Gerçek `GoogleMap` widget'ı bir API anahtarı gerektirir (bkz. README).
-/// Anahtar eklenene kadar tasarıma uygun stilize bir placeholder gösterilir.
-class MapScreen extends StatelessWidget {
+/// Harita ekranı — gerçek OpenStreetMap üzerinde yakındaki flock'lar.
+/// Anahtar gerektirmez (OSM tile API + zorunlu atıf). Pin'e dokununca altta
+/// kart açılır; karttan detaya gidilir.
+class MapScreen extends StatefulWidget {
   final void Function(Flock)? onOpenInvite;
   const MapScreen({super.key, this.onOpenInvite});
 
   @override
-  Widget build(BuildContext context) {
-    final peek = kFlocks.first;
-    return Stack(children: [
-      // stylized map backdrop
-      Positioned.fill(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.creamDeep, AppColors.cream],
-            ),
-          ),
-          child: CustomPaint(painter: _GridPainter()),
-        ),
-      ),
-      // pins
-      const _Pin(left: 0.24, top: 0.30, vibeId: 'coffee'),
-      const _Pin(left: 0.62, top: 0.26, vibeId: 'walk'),
-      const _Pin(left: 0.72, top: 0.52, vibeId: 'games'),
-      const _Pin(left: 0.40, top: 0.60, vibeId: 'bar'),
-      const _YouPin(left: 0.48, top: 0.72),
+  State<MapScreen> createState() => _MapScreenState();
+}
 
-      // top search bar
-      Positioned(
-        top: 0, left: 0, right: 0,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-            child: Row(children: [
-              Expanded(
+class _MapScreenState extends State<MapScreen> {
+  final _mapController = MapController();
+  String? _selectedId;
+
+  bool get _live =>
+      FirebaseService.instance.isInitialized &&
+      AuthRepository.instance.currentUser != null;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = LocationScope.of(context);
+    if (_live) {
+      return StreamBuilder<List<FlockDoc>>(
+        stream: FlockRepository.instance.watchActive(),
+        builder: (context, snap) {
+          final flocks =
+              (snap.data ?? const <FlockDoc>[]).map((d) => d.toFlock()).toList();
+          return _map(loc, flocks);
+        },
+      );
+    }
+    // Firebase yoksa örnek veriyle çalış (çevrimdışı mod).
+    return _map(loc, kFlocks);
+  }
+
+  Widget _map(LocationController loc, List<Flock> flocks) {
+    final selected = _selectedId == null
+        ? null
+        : flocks.where((f) => f.id == _selectedId).firstOrNull;
+
+    return Stack(children: [
+      Positioned.fill(
+        child: FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: ll.LatLng(loc.point.lat, loc.point.lng),
+            initialZoom: 12,
+            onTap: (_, _) => setState(() => _selectedId = null),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.fluck.app',
+            ),
+            MarkerLayer(markers: [
+              // Kullanıcının konumu
+              Marker(
+                point: ll.LatLng(loc.point.lat, loc.point.lng),
+                width: 22,
+                height: 22,
                 child: Container(
-                  height: 46,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    border: Border.all(color: AppColors.borderSubtle),
-                    boxShadow: AppColors.shadowSm,
+                    color: AppColors.sky500,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x552D6BE0), blurRadius: 12),
+                    ],
                   ),
-                  child: Row(children: [
-                    const Icon(Icons.search, size: 18, color: AppColors.textMuted),
-                    const SizedBox(width: 8),
-                    Text(AppL10n.of(context).searchThisArea,
-                        style: AppText.body(14, weight: FontWeight.w600, color: AppColors.textMuted)),
-                  ]),
                 ),
               ),
-              const SizedBox(width: 10),
-              _GlassIconButton(icon: Icons.tune, onTap: () {}),
+              // Flock pin'leri
+              for (final f in flocks)
+                Marker(
+                  point: ll.LatLng(f.lat, f.lng),
+                  width: 44,
+                  height: 44,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedId = f.id),
+                    child: VibeDot(vibe: f.vibe, size: 44),
+                  ),
+                ),
             ]),
-          ),
+            const OsmAttribution(),
+          ],
         ),
       ),
 
       // locate-me
       Positioned(
-        right: 14, bottom: 180,
-        child: _GlassIconButton(icon: Icons.my_location, onTap: () {}),
+        right: 14,
+        bottom: selected == null ? 24 : 190,
+        child: _GlassIconButton(icon: Icons.my_location, onTap: () => _locateMe(loc)),
       ),
 
-      // floating peek card
-      Positioned(
-        left: 14, right: 14, bottom: 14,
-        child: InviteCard(flock: peek, onTap: () => onOpenInvite?.call(peek)),
-      ),
+      // seçili flock kartı
+      if (selected != null)
+        Positioned(
+          left: 14, right: 14, bottom: 14,
+          child: InviteCard(
+            flock: selected,
+            distance: distanceLabel(haversineKm(loc.point, selected.point)),
+            onTap: () => widget.onOpenInvite?.call(selected),
+          ),
+        ),
     ]);
   }
-}
 
-class _Pin extends StatelessWidget {
-  final double left, top;
-  final String vibeId;
-  const _Pin({required this.left, required this.top, required this.vibeId});
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    return Positioned(
-      left: left * size.width,
-      top: top * size.height,
-      child: VibeDot(vibe: vibeById(vibeId), size: 44),
-    );
-  }
-}
-
-class _YouPin extends StatelessWidget {
-  final double left, top;
-  const _YouPin({required this.left, required this.top});
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    return Positioned(
-      left: left * size.width,
-      top: top * size.height,
-      child: Container(
-        width: 22, height: 22,
-        decoration: BoxDecoration(
-          color: AppColors.sky500,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: const [BoxShadow(color: Color(0x552D6BE0), blurRadius: 12)],
-        ),
-      ),
-    );
+  Future<void> _locateMe(LocationController loc) async {
+    await loc.useDeviceLocation();
+    if (!mounted) return;
+    _mapController.move(ll.LatLng(loc.point.lat, loc.point.lng), 14);
   }
 }
 
@@ -142,23 +148,4 @@ class _GlassIconButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.ink200.withValues(alpha: 0.5)
-      ..strokeWidth = 1;
-    const step = 56.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

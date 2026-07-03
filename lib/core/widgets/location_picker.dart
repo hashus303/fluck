@@ -9,6 +9,7 @@ import '../services/geocoding_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import 'flock_widgets.dart';
 
 /// Harita üzerinde konum seç — OpenStreetMap (anahtarsız).
 /// Üstte yer arama, altta merkez-pin'li sürüklenebilir harita.
@@ -174,6 +175,7 @@ class _LocationPickerState extends State<LocationPicker> {
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.fluck.app',
                 ),
+                const OsmAttribution(),
               ],
             ),
             // Sabit merkez pin — harita altında kaydıkça konum değişir.

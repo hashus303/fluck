@@ -54,8 +54,20 @@ void main() {
     });
   });
 
+  group('Harita sekmesi (OSM)', () {
+    testWidgets('gerçek OSM haritası flock pinleri ve atıf ile açılır', (tester) async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Map'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // OSM zorunlu atıfı görünür (LocationPicker henüz açık değil → tek).
+      expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
+    });
+  });
+
   group('Güvenlik sekmesi', () {
-    testWidgets('trust score görünür ve SOS uzun basınca uyarı gösterir', (tester) async {
+    testWidgets('trust score görünür, SOS artık yok', (tester) async {
       await pumpApp(tester);
       await tester.tap(find.text('Safety'));
       await tester.pump();
@@ -64,12 +76,25 @@ void main() {
       // Çevrimdışı önizleme profili tam doğrulanmış → skor 100, kimlik doğrulanmış.
       expect(find.text('100'), findsOneWidget);
       expect(find.text('Identity verified'), findsOneWidget);
-      expect(find.text('SOS'), findsOneWidget);
+      // SOS kaldırıldı — ekranda hiçbir izi olmamalı.
+      expect(find.text('SOS'), findsNothing);
+      expect(find.text('Emergency'), findsNothing);
+    });
+  });
 
-      await tester.longPress(find.text('SOS'));
+  group('Şansına bırak (🎲)', () {
+    testWidgets('zar butonu rastgele bir flock\'u alt sayfada gösterir', (tester) async {
+      await pumpApp(tester);
+      expect(find.text('Surprise me'), findsOneWidget);
+
+      await tester.tap(find.text('Surprise me'));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('SOS activated — alerting your flock'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Your fate flock'), findsOneWidget);
+      expect(find.text('Roll again'), findsOneWidget);
+      // Menzildeki 4 flock'tan biri kartta — hepsinde Join butonu olur.
+      expect(find.text('Join'), findsWidgets);
     });
   });
 
@@ -86,8 +111,16 @@ void main() {
 
       await tester.enterText(find.byType(TextField).first, 'Test Cafe');
       await tester.pump();
-      // Mekan girilince buton aktif etikete döner.
-      expect(find.text('Post invite · live for 2h'), findsOneWidget);
+      // Mekan girilince buton aktif etikete döner (varsayılan süre 2 saat).
+      expect(find.text('Post invite · live for 2 hours'), findsOneWidget);
+
+      // Süre seçimi butona ve bilgilendirme notuna yansır.
+      await tester.ensureVisible(find.text('⚡ 30 min'));
+      await tester.pump();
+      await tester.tap(find.text('⚡ 30 min'));
+      await tester.pump();
+      expect(find.text('Post invite · live for 30 min'), findsOneWidget);
+      expect(find.text('Your invite goes live instantly and expires in 30 min.'), findsOneWidget);
     });
   });
 }

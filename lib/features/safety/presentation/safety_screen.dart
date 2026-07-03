@@ -127,29 +127,6 @@ class _SafetyBody extends StatelessWidget {
             ),
             const SizedBox(height: 10),
           ],
-          const SizedBox(height: 14),
-
-          // Emergency SOS
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF6F6),
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              border: Border.all(color: const Color(0xFFF6D2D3)),
-            ),
-            child: Column(children: [
-              Text(t.emergency,
-                  style: AppText.body(14, weight: FontWeight.w700, color: AppColors.danger)),
-              const SizedBox(height: 4),
-              Text(t.emergencyDesc,
-                  textAlign: TextAlign.center,
-                  style: AppText.body(12.5, color: AppColors.textMuted)),
-              const SizedBox(height: 16),
-              _SosButton(),
-              const SizedBox(height: 14),
-              Text(t.pressHold, style: AppText.body(11.5, color: AppColors.textFaint)),
-            ]),
-          ),
         ],
       ),
     );
@@ -220,33 +197,6 @@ class _IdentityCard extends StatelessWidget {
           ]),
         ),
       ]),
-    );
-  }
-}
-
-class _SosButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppL10n.of(context).sosActivated)),
-        );
-      },
-      child: Container(
-        width: 108, height: 108,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const RadialGradient(
-            center: Alignment(0, -0.24),
-            colors: [Color(0xFFF2696D), AppColors.danger],
-          ),
-          boxShadow: AppColors.glowDanger,
-        ),
-        alignment: Alignment.center,
-        child: Text(AppL10n.of(context).sos,
-            style: AppText.display(24, color: Colors.white).copyWith(letterSpacing: 1)),
-      ),
     );
   }
 }

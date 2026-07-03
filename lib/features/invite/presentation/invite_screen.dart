@@ -13,7 +13,7 @@ import '../../auth/data/auth_repository.dart';
 import '../../flock/data/flock_repository.dart';
 import '../../profile/data/user_profile_repository.dart';
 
-/// Create — vibe, gerçek mekan (haritadan) ve grup boyutu seç; 2 saatlik expiry.
+/// Create — vibe, gerçek mekan (haritadan), grup boyutu ve süre (30dk–2sa) seç.
 class InviteScreen extends StatefulWidget {
   final VoidCallback? onBack;
   final VoidCallback? onPost;
@@ -26,6 +26,9 @@ class InviteScreen extends StatefulWidget {
 class _InviteScreenState extends State<InviteScreen> {
   String _vibe = 'coffee';
   int _size = 5;
+  int _lifetimeMin = 120; // 30 | 60 | 120
+
+  static const _lifetimeOptions = [30, 60, 120];
   final _venueCtrl = TextEditingController();
   bool _posting = false;
 
@@ -61,6 +64,12 @@ class _InviteScreenState extends State<InviteScreen> {
   }
 
   bool get _canPost => _venueCtrl.text.trim().isNotEmpty;
+
+  String _lifetimeLabel(AppL10n t, int min) => switch (min) {
+        30 => t.duration30m,
+        60 => t.duration1h,
+        _ => t.duration2h,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -174,6 +183,34 @@ class _InviteScreenState extends State<InviteScreen> {
                   ),
                 ]),
                 Text(t.minThree, style: AppText.body(12.5, color: AppColors.textMuted)),
+                const SizedBox(height: 20),
+                Text(t.howLong, style: AppText.eyebrow()),
+                const SizedBox(height: 10),
+                Row(children: [
+                  for (final m in _lifetimeOptions) ...[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _lifetimeMin = m),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _lifetimeMin == m ? AppColors.brand : AppColors.surfaceCard,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                            border: Border.all(
+                                color: _lifetimeMin == m ? AppColors.brand : AppColors.borderSubtle,
+                                width: 1.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                              m == 30 ? '⚡ ${_lifetimeLabel(t, m)}' : _lifetimeLabel(t, m),
+                              style: AppText.body(13, weight: FontWeight.w700,
+                                  color: _lifetimeMin == m ? Colors.white : AppColors.textBody)),
+                        ),
+                      ),
+                    ),
+                    if (m != _lifetimeOptions.last) const SizedBox(width: 8),
+                  ],
+                ]),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -185,7 +222,7 @@ class _InviteScreenState extends State<InviteScreen> {
                     const Icon(Icons.bolt, color: AppColors.brand, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(t.expiryNote,
+                      child: Text(t.expiryNoteFor(_lifetimeLabel(t, _lifetimeMin)),
                           style: AppText.body(13, weight: FontWeight.w600, color: AppColors.brandHover)),
                     ),
                   ]),
@@ -205,7 +242,9 @@ class _InviteScreenState extends State<InviteScreen> {
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: CircularProgressIndicator(color: AppColors.brand)))
                 : FlockButton(
-                    label: _canPost ? t.postInvite : t.venueNameRequired,
+                    label: _canPost
+                        ? t.postInviteFor(_lifetimeLabel(t, _lifetimeMin))
+                        : t.venueNameRequired,
                     full: true,
                     onPressed: _canPost ? _post : null,
                   ),
@@ -218,10 +257,11 @@ class _InviteScreenState extends State<InviteScreen> {
   Future<void> _post() async {
     final t = AppL10n.of(context);
     final point = _point ?? LocationScope.of(context).point;
+    final liveMsg = t.inviteLiveFor(_lifetimeLabel(t, _lifetimeMin));
 
     if (!FirebaseService.instance.isInitialized || _myUid == null) {
       widget.onPost?.call();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.inviteLive)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(liveMsg)));
       Navigator.maybePop(context);
       return;
     }
@@ -238,10 +278,11 @@ class _InviteScreenState extends State<InviteScreen> {
         lat: point.lat,
         lng: point.lng,
         total: _size,
+        lifetime: Duration(minutes: _lifetimeMin),
       );
       if (!mounted) return;
       widget.onPost?.call();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.inviteLive)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(liveMsg)));
       Navigator.maybePop(context);
     } catch (_) {
       if (mounted) {

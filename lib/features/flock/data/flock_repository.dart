@@ -8,7 +8,8 @@ class FlockRepository {
   FlockRepository._();
   static final FlockRepository instance = FlockRepository._();
 
-  /// Bir flock'un aktif kalma süresi.
+  /// Varsayılan / azami aktif kalma süresi. Host oluştururken
+  /// 30 dk – 2 sa arasında seçebilir (spontanelik penceresi).
   static const flockLifetime = Duration(hours: 2);
 
   CollectionReference<Map<String, dynamic>> get _col =>
@@ -43,6 +44,7 @@ class FlockRepository {
     required double lat,
     required double lng,
     required int total,
+    Duration lifetime = flockLifetime,
   }) async {
     final now = DateTime.now();
     final ref = await _col.add({
@@ -58,7 +60,7 @@ class FlockRepository {
       'memberUids': [hostUid],
       'memberNames': {hostUid: hostName},
       'createdAt': FieldValue.serverTimestamp(),
-      'expiresAt': Timestamp.fromDate(now.add(flockLifetime)),
+      'expiresAt': Timestamp.fromDate(now.add(lifetime)),
     });
     return ref.id;
   }

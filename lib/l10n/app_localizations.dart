@@ -136,7 +136,7 @@ abstract class AppL10n {
   /// No description provided for @homeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick a vibe, join a group, go out — right now.'**
+  /// **'Skip the planning — pick a vibe, join, go.'**
   String get homeSubtitle;
 
   /// No description provided for @allVibes.
@@ -144,6 +144,36 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'All vibes'**
   String get allVibes;
+
+  /// No description provided for @surpriseMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise me'**
+  String get surpriseMe;
+
+  /// No description provided for @surpriseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your fate flock'**
+  String get surpriseTitle;
+
+  /// No description provided for @surpriseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The dice picked this one — the rest is on you.'**
+  String get surpriseSubtitle;
+
+  /// No description provided for @spinAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll again'**
+  String get spinAgain;
+
+  /// No description provided for @surpriseNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to roll right now — start one ✦'**
+  String get surpriseNone;
 
   /// No description provided for @vibeCoffee.
   ///
@@ -307,36 +337,6 @@ abstract class AppL10n {
   /// **'Everyone rates after — low scores get filtered out.'**
   String get featRatingsDesc;
 
-  /// No description provided for @emergency.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency'**
-  String get emergency;
-
-  /// No description provided for @emergencyDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Instantly alerts your contacts + Flock safety with your live location.'**
-  String get emergencyDesc;
-
-  /// No description provided for @sos.
-  ///
-  /// In en, this message translates to:
-  /// **'SOS'**
-  String get sos;
-
-  /// No description provided for @pressHold.
-  ///
-  /// In en, this message translates to:
-  /// **'Press & hold to activate'**
-  String get pressHold;
-
-  /// No description provided for @sosActivated.
-  ///
-  /// In en, this message translates to:
-  /// **'SOS activated — alerting your flock'**
-  String get sosActivated;
-
   /// No description provided for @statTrust.
   ///
   /// In en, this message translates to:
@@ -439,11 +439,35 @@ abstract class AppL10n {
   /// **'Minimum 3 people — Flock is group-only.'**
   String get minThree;
 
-  /// No description provided for @expiryNote.
+  /// No description provided for @howLong.
   ///
   /// In en, this message translates to:
-  /// **'Your invite goes live instantly and expires in 2 hours.'**
-  String get expiryNote;
+  /// **'HOW LONG IS IT LIVE?'**
+  String get howLong;
+
+  /// No description provided for @duration30m.
+  ///
+  /// In en, this message translates to:
+  /// **'30 min'**
+  String get duration30m;
+
+  /// No description provided for @duration1h.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get duration1h;
+
+  /// No description provided for @duration2h.
+  ///
+  /// In en, this message translates to:
+  /// **'2 hours'**
+  String get duration2h;
+
+  /// No description provided for @expiryNoteFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite goes live instantly and expires in {label}.'**
+  String expiryNoteFor(String label);
 
   /// No description provided for @pickVenueFirst.
   ///
@@ -475,23 +499,17 @@ abstract class AppL10n {
   /// **'Enter a venue name'**
   String get venueNameRequired;
 
-  /// No description provided for @postInvite.
+  /// No description provided for @postInviteFor.
   ///
   /// In en, this message translates to:
-  /// **'Post invite · live for 2h'**
-  String get postInvite;
+  /// **'Post invite · live for {label}'**
+  String postInviteFor(String label);
 
-  /// No description provided for @inviteLive.
+  /// No description provided for @inviteLiveFor.
   ///
   /// In en, this message translates to:
-  /// **'Your invite is live for 2h 🎉'**
-  String get inviteLive;
-
-  /// No description provided for @searchThisArea.
-  ///
-  /// In en, this message translates to:
-  /// **'Search this area'**
-  String get searchThisArea;
+  /// **'Your invite is live for {label} 🎉'**
+  String inviteLiveFor(String label);
 
   /// No description provided for @locWithin.
   ///

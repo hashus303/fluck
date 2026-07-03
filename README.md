@@ -1,6 +1,6 @@
 # fluck
 
-Flutter tabanlı mobil uygulama. Firebase (Auth + Firestore) ve Google Maps entegrasyonu ile feature-based mimari kullanır.
+Flutter tabanlı mobil uygulama. Firebase (Auth + Firestore) ve OpenStreetMap entegrasyonu ile feature-based mimari kullanır.
 
 ## 📚 Dokümantasyon
 
@@ -15,7 +15,7 @@ Flutter tabanlı mobil uygulama. Firebase (Auth + Firestore) ve Google Maps ente
 - **Flutter** (Dart)
 - **firebase_core / firebase_auth** — kimlik doğrulama
 - **cloud_firestore** — veritabanı
-- **google_maps_flutter** — harita
+- **flutter_map + OpenStreetMap** — harita (tile API) ve geocoding (Nominatim API); **anahtar gerektirmez**
 
 ## Klasör Yapısı
 
@@ -63,10 +63,15 @@ flutterfire configure --project=<firebase-proje-id>
 
 Bu komut Android/iOS yapılandırma dosyalarını ve `firebase_options.dart` dosyasını oluşturur.
 
-### Google Maps API anahtarı
+### Harita (OpenStreetMap)
 
-- **Android:** `android/app/src/main/AndroidManifest.xml` içine `com.google.android.geo.API_KEY` meta-data ekleyin.
-- **iOS:** `ios/Runner/AppDelegate.swift` içinde `GMSServices.provideAPIKey("...")` çağrısı ekleyin.
+Harita ve geocoding için [OpenStreetMap API'leri](https://wiki.openstreetmap.org/wiki/API)
+kullanılır — tile sunucusu (`tile.openstreetmap.org`) ve Nominatim (arama/ters-geocode).
+API anahtarı gerekmez. Karşılığında iki kural geçerlidir:
+
+- Haritalarda **"© OpenStreetMap contributors" atıfı zorunludur** (kodda `OsmAttribution` widget'ı ekli).
+- [Tile kullanım politikasına](https://operations.osmfoundation.org/policies/tiles/) uyulmalıdır
+  (geçerli `User-Agent` gönderilir; yüksek trafikte kendi tile sunucunuza geçin).
 
 ## Çalıştırma
 

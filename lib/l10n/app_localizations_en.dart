@@ -29,10 +29,26 @@ class AppL10nEn extends AppL10n {
   String get findYourFlock => 'Find your flock';
 
   @override
-  String get homeSubtitle => 'Pick a vibe, join a group, go out — right now.';
+  String get homeSubtitle => 'Skip the planning — pick a vibe, join, go.';
 
   @override
   String get allVibes => 'All vibes';
+
+  @override
+  String get surpriseMe => 'Surprise me';
+
+  @override
+  String get surpriseTitle => 'Your fate flock';
+
+  @override
+  String get surpriseSubtitle =>
+      'The dice picked this one — the rest is on you.';
+
+  @override
+  String get spinAgain => 'Roll again';
+
+  @override
+  String get surpriseNone => 'Nothing to roll right now — start one ✦';
 
   @override
   String get vibeCoffee => 'Coffee';
@@ -126,22 +142,6 @@ class AppL10nEn extends AppL10n {
       'Everyone rates after — low scores get filtered out.';
 
   @override
-  String get emergency => 'Emergency';
-
-  @override
-  String get emergencyDesc =>
-      'Instantly alerts your contacts + Flock safety with your live location.';
-
-  @override
-  String get sos => 'SOS';
-
-  @override
-  String get pressHold => 'Press & hold to activate';
-
-  @override
-  String get sosActivated => 'SOS activated — alerting your flock';
-
-  @override
   String get statTrust => 'Trust';
 
   @override
@@ -195,8 +195,21 @@ class AppL10nEn extends AppL10n {
   String get minThree => 'Minimum 3 people — Flock is group-only.';
 
   @override
-  String get expiryNote =>
-      'Your invite goes live instantly and expires in 2 hours.';
+  String get howLong => 'HOW LONG IS IT LIVE?';
+
+  @override
+  String get duration30m => '30 min';
+
+  @override
+  String get duration1h => '1 hour';
+
+  @override
+  String get duration2h => '2 hours';
+
+  @override
+  String expiryNoteFor(String label) {
+    return 'Your invite goes live instantly and expires in $label.';
+  }
 
   @override
   String get pickVenueFirst => 'Pick a venue to continue';
@@ -214,13 +227,14 @@ class AppL10nEn extends AppL10n {
   String get venueNameRequired => 'Enter a venue name';
 
   @override
-  String get postInvite => 'Post invite · live for 2h';
+  String postInviteFor(String label) {
+    return 'Post invite · live for $label';
+  }
 
   @override
-  String get inviteLive => 'Your invite is live for 2h 🎉';
-
-  @override
-  String get searchThisArea => 'Search this area';
+  String inviteLiveFor(String label) {
+    return 'Your invite is live for $label 🎉';
+  }
 
   @override
   String locWithin(Object km) {

@@ -29,10 +29,25 @@ class AppL10nTr extends AppL10n {
   String get findYourFlock => 'Flock\'unu bul';
 
   @override
-  String get homeSubtitle => 'Bir vibe seç, gruba katıl, hemen çık.';
+  String get homeSubtitle => 'Plan yapma — bir vibe seç, katıl, çık.';
 
   @override
   String get allVibes => 'Tüm vibe\'lar';
+
+  @override
+  String get surpriseMe => 'Şansına bırak';
+
+  @override
+  String get surpriseTitle => 'Kaderin flock\'u';
+
+  @override
+  String get surpriseSubtitle => 'Zar bunu seçti — gerisi sende.';
+
+  @override
+  String get spinAgain => 'Tekrar çevir';
+
+  @override
+  String get surpriseNone => 'Şu an çevrilecek flock yok — ilkini sen başlat ✦';
 
   @override
   String get vibeCoffee => 'Kahve';
@@ -128,22 +143,6 @@ class AppL10nTr extends AppL10n {
       'Herkes sonradan puan verir — düşük skorlar elenir.';
 
   @override
-  String get emergency => 'Acil durum';
-
-  @override
-  String get emergencyDesc =>
-      'Kişilerine + Flock güvenliğine canlı konumunla anında haber verir.';
-
-  @override
-  String get sos => 'SOS';
-
-  @override
-  String get pressHold => 'Etkinleştirmek için basılı tut';
-
-  @override
-  String get sosActivated => 'SOS etkinleştirildi — flock\'una haber veriliyor';
-
-  @override
   String get statTrust => 'Güven';
 
   @override
@@ -197,8 +196,21 @@ class AppL10nTr extends AppL10n {
   String get minThree => 'En az 3 kişi — Flock sadece gruba özel.';
 
   @override
-  String get expiryNote =>
-      'Davetin anında yayına girer ve 2 saat sonra sona erer.';
+  String get howLong => 'NE KADAR SÜRE AKTİF?';
+
+  @override
+  String get duration30m => '30 dk';
+
+  @override
+  String get duration1h => '1 saat';
+
+  @override
+  String get duration2h => '2 saat';
+
+  @override
+  String expiryNoteFor(String label) {
+    return 'Davetin anında yayına girer ve $label sonra sona erer.';
+  }
 
   @override
   String get pickVenueFirst => 'Devam için bir mekan seç';
@@ -216,13 +228,14 @@ class AppL10nTr extends AppL10n {
   String get venueNameRequired => 'Mekan adı gir';
 
   @override
-  String get postInvite => 'Daveti yayınla · 2 saat aktif';
+  String postInviteFor(String label) {
+    return 'Daveti yayınla · $label aktif';
+  }
 
   @override
-  String get inviteLive => 'Davetin 2 saat boyunca aktif 🎉';
-
-  @override
-  String get searchThisArea => 'Bu bölgede ara';
+  String inviteLiveFor(String label) {
+    return 'Davetin $label boyunca aktif 🎉';
+  }
 
   @override
   String locWithin(Object km) {

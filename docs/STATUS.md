@@ -1,15 +1,16 @@
 # Flock — Durum: Yapıldı / Yapılacak
 
 > Vizyon ([PRODUCT.md](PRODUCT.md)) ile kodun gerçek durumu arasındaki fark.
-> Son güncelleme: 2026-06-28.
+> Son güncelleme: 2026-07-04.
 
 ## ✅ Gerçekten yapıldı (çalışıyor)
 
 - **E-posta/şifre auth** (Firebase Auth) — giriş/kayıt/çıkış
 - **Onboarding + profil** — ad, yaş, ilgi alanları, foto/selfie *bayrakları*
-- **Flock yaşam döngüsü** — oluştur / katıl / ayrıl, **2 saat otomatik expiry** (istemci hesaplı)
+- **Flock yaşam döngüsü** — oluştur / katıl / ayrıl; **süre host seçimli: 30 dk / 1 sa / 2 sa** otomatik expiry (istemci hesaplı)
+- **Şansına bırak (🎲)** — ana ekranda zar butonu: filtredeki katılabilir flock'lardan rastgelesini alt sayfada gösterir; katıl / tekrar çevir
 - **Mesafe filtresi** — haversine, 10/25/100 km / her yer; vibe filtresi; mesafeye göre sıralama
-- **Harita + liste** — `flutter_map`, konum seçici, GPS (`geolocator`), reverse-geocode (alan adı)
+- **Harita + liste** — gerçek OSM haritası (`flutter_map`): canlı flock pinleri, konumum, pin→kart→detay; konum seçici, GPS (`geolocator`), reverse-geocode (Nominatim)
 - **Uygulama-içi bildirim** — birisi flock'a katılınca host'a (Firestore `notifications`)
 - **TR/EN lokalizasyon**, özel tema, responsive shell
 - **Grup boyutu 3-8** — davet oluştururken min 3 UI'da zorlanıyor
@@ -19,7 +20,6 @@
 
 - **Kimlik doğrulama** — `verificationStatus` + `photoProvided/selfieProvided` *bayrakları* var; **TC kimlik alanı ve gerçek doğrulama akışı yok**. Güvenlik ekranındaki kimlik doğrulama kartı artık kullanıcının gerçek doğrulama durumunu yansıtıyor.
 - **Trust score** — güvenlik ekranındaki trust score artık kullanıcının profilindeki sinyallere (onboarding, kimlik doğrulama durumu, fotoğraf ve selfie sağlama durumları) göre dinamik olarak hesaplanıyor, ancak bu sinyallerin kendileri henüz gerçek bir doğrulama akışına (OCR/yüz tanıma gibi) bağlı değil.
-- **SOS butonu** — var ama uzun basınca **sadece snackbar** gösterir; 112 bağlantısı yok.
 
 ## ❌ Henüz yok (vizyonda var, kodda yok)
 
@@ -27,11 +27,16 @@
 - **Partner mekan kısıtı** — mekan şu an serbest metin + haritadan herhangi bir nokta
 - **Güvenilir kişiyle canlı konum paylaşımı**
 - **Check-in sistemi**
-- **SOS → 112 / acil servis entegrasyonu**
 - **AI sohbet moderasyonu** — uygulamada sohbet/chat hiç yok
 - **Cloud Functions** — expiry temizliği, doğrulama, moderasyon sunucu tarafı yok
 - **FCM / push bildirim** — bildirimler yalnızca uygulama-içi (Firestore), push yok
 - **"Min 3 kişi" gerçek zorlama** — oluştururken hedef boyut min 3, ama buluşmanın gerçekten 3 kişiye ulaşması zorlanmıyor
+
+## 🔁 Ürün kararları
+
+- **Google Maps MVP'den çıkarıldı, OSM API'ye geçildi (2026-07-04)** — `google_maps_flutter` bağımlılığı silindi (kodda zaten kullanılmıyordu); harita [OpenStreetMap API'leriyle](https://wiki.openstreetmap.org/wiki/API) çalışıyor (tile + Nominatim, anahtarsız). Placeholder harita ekranı gerçek OSM haritasına çevrildi (canlı pinler). Zorunlu atıf (`OsmAttribution`) iki haritaya da eklendi. Yüksek trafikte tile politikası gereği kendi tile sunucusuna geçilmeli.
+- **SOS kaldırıldı (2026-07-04)** — SOS butonu ve 112 entegrasyonu hedefi üründen bilinçli olarak çıkarıldı. Gerekçe: uygulama bir acil durum aracı değil; sahte güven hissi veren dekoratif bir SOS taşımak yerine güvenlik, grup buluşması + kimlik/trust score + (planlanan) check-in ve konum paylaşımıyla sağlanacak. Acil durumda telefonun kendi 112 akışı esastır.
+- **Spontanelik odağı** — ürün "plan yapmadan hemen çık" fikrine göre keskinleştirildi: davet süresi kısaltılabilir (30 dk "yıldırım" flock'ları) ve "Şansına bırak" ile karar verme yükü sıfırlanıyor.
 
 ## 🟢 Çözülen riskler / hatalar (Tamamlandı)
 
@@ -50,7 +55,7 @@
 ## Öneri sırası (yapılırsa)
 
 1. Konum/adres etiketinin (`_label`) GPS konumuna göre güncellenmesini sağlama
-2. SOS, check-in, konum paylaşımı (güvenlik MVP'si)
+2. Check-in + güvenilir kişiyle konum paylaşımı (güvenlik MVP'si)
 3. Cloud Functions (expiry temizliği) + FCM push
 4. AI moderasyon + partner mekan altyapısı
 

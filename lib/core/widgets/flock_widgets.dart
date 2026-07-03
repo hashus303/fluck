@@ -61,6 +61,30 @@ class CountdownPill extends StatelessWidget {
   }
 }
 
+/// OSM tile kullanım politikası gereği zorunlu atıf — harita köşesine konur.
+class OsmAttribution extends StatelessWidget {
+  const OsmAttribution({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Container(
+        margin: const EdgeInsets.all(4),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Text('© OpenStreetMap contributors',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+      ),
+    );
+  }
+}
+
 enum BadgeTone { success, coral, neutral, warning, danger }
 
 class FlockBadge extends StatelessWidget {
@@ -235,7 +259,12 @@ class FlockButton extends StatelessWidget {
             alignment: Alignment.center,
             child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
               if (leadingIcon != null) ...[Icon(leadingIcon, size: 18, color: fg), const SizedBox(width: 8)],
-              Text(label, style: AppText.body(15, weight: FontWeight.w700, color: fg)),
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.body(15, weight: FontWeight.w700, color: fg)),
+              ),
             ]),
           ),
         ),

@@ -7,7 +7,7 @@
 
 - **Flutter** (Dart SDK ^3.11.1), Material 3, özel tema (`core/theme`)
 - **Firebase:** `firebase_core`, `firebase_auth` (e-posta/şifre), `cloud_firestore`
-- **Konum/Harita:** `google_maps_flutter`, `flutter_map` + `latlong2`, `geolocator`, `http` (reverse-geocode)
+- **Konum/Harita:** OpenStreetMap ([API'ler](https://wiki.openstreetmap.org/wiki/API): tile + Nominatim) — `flutter_map` + `latlong2`, `geolocator`, `http`. **Anahtar gerektirmez**; "© OpenStreetMap contributors" atıfı zorunlu (`OsmAttribution`).
 - **Yerel:** `shared_preferences` (konum cache), `intl` + `flutter_localizations` (TR/EN, `l10n.yaml` + ARB)
 - **State:** Hafif — `ChangeNotifier` + `InheritedNotifier` (`LocaleScope`, `LocationScope`). Harici state lib yok.
 
@@ -45,14 +45,14 @@ lib/
 │   │                data/interests.dart               # İlgi alanı katalogu (onboarding)
 │   │                presentation/onboarding_screen.dart # İlk kurulum akışı
 │   │                presentation/profile_screen.dart    # Profil görünümü
-│   ├── home/        presentation/home_screen.dart     # Ana akış: canlı flock listesi + mesafe/vibe filtre + katıl
-│   │                presentation/map_screen.dart      # Harita görünümü
+│   ├── home/        presentation/home_screen.dart     # Ana akış: canlı flock listesi + mesafe/vibe filtre + katıl + "Şansına bırak" (🎲)
+│   │                presentation/map_screen.dart      # Gerçek OSM haritası: canlı flock pinleri, konumum, pin→kart→detay
 │   ├── flock/       data/flock_doc.dart               # Firestore flock belgesi modeli + toFlock()
 │   │                data/flock_repository.dart         # flocks koleksiyonu: watchActive/create/join/leave
 │   │                data/dev_seeder.dart               # SADECE DEV: örnek flock'lar yazar (isSeed=true)
 │   │                presentation/flock_detail_screen.dart # Tek flock detay + katıl/ayrıl
-│   ├── invite/      presentation/invite_screen.dart   # Davet oluştur (vibe, mekan, grup 3-8, 2sa expiry)
-│   ├── safety/      presentation/safety_screen.dart   # Güvenlik merkezi (SOS, trust score, kimlik — çoğu UI-only)
+│   ├── invite/      presentation/invite_screen.dart   # Davet oluştur (vibe, mekan, grup 3-8, süre 30dk/1sa/2sa)
+│   ├── safety/      presentation/safety_screen.dart   # Güvenlik merkezi (trust score, kimlik durumu — SOS üründen kaldırıldı)
 │   └── notifications/ data/notification_repository.dart # users/{uid}/notifications: join bildirimleri
 │                      presentation/notifications_screen.dart
 └── l10n/            app_localizations*.dart            # Üretilen TR/EN çeviriler (AppL10n)
@@ -94,14 +94,15 @@ flocks/{flockId}
 - **Açılış:** `main()` → Firebase init → `runApp` → locale/location arka planda yüklenir.
 - **Oturum kapısı:** `AuthGate` (Firebase yoksa direkt RootScreen) → giriş varsa `_ProfileGate` → onboarding bitmemişse `OnboardingScreen`, bittiyse `RootScreen` (4 sekmeli kabuk).
 - **Flock listele:** `home_screen` → `FlockRepository.watchActive()` (expiresAt>now) → istemcide haversine ile mesafe + vibe filtre → mesafeye göre sırala.
+- **Şansına bırak:** `home_screen > _surprise()` → filtre/yarıçap içindeki katılabilir (üye olunmayan, dolu olmayan) flock'lardan rastgele biri alt sayfada → katıl / tekrar çevir.
 - **Katıl:** `FlockRepository.join()` transaction (dolu/expired kontrolü) → host'a `notifyJoin` (best-effort).
-- **Oluştur:** `invite_screen` → `FlockRepository.create()` → `expiresAt = now + 2sa`.
+- **Oluştur:** `invite_screen` → `FlockRepository.create(lifetime: ...)` → `expiresAt = now + host'un seçtiği süre (30dk / 1sa / 2sa)`.
 - **Mesafe filtresi tamamen istemcide** — tüm aktif flock'lar çekilip cihazda filtrelenir (ölçeklenme notu: STATUS).
 
 ## Yapılandırma gereksinimleri
 
 - `firebase_options.dart` — proje `fluck-app-fv0kh` için doldurulmuş (web/android/ios).
-- Google Maps API anahtarı: Android `AndroidManifest.xml` `com.google.android.geo.API_KEY`; iOS `AppDelegate.swift` `GMSServices.provideAPIKey(...)`.
+- Harita için ek yapılandırma yok — OpenStreetMap anahtarsızdır. Tek koşul: atıf (`OsmAttribution`) ve [tile kullanım politikası](https://operations.osmfoundation.org/policies/tiles/) (geçerli `userAgentPackageName` gönderiliyor).
 
 ---
 İlgili: [PRODUCT.md](PRODUCT.md) (ne/neden) · [STATUS.md](STATUS.md) (yapıldı/yapılacak + riskler)

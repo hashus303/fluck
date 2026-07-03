@@ -183,7 +183,7 @@ class _RootScreenState extends State<RootScreen> {
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(onOpenInvite: _openDetail),
-      const MapScreen(),
+      MapScreen(onOpenInvite: _openDetail),
       const SafetyScreen(),
       const ProfileScreen(),
     ];

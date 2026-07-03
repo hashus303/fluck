@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/models/flock.dart';
@@ -150,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
         SliverToBoxAdapter(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
             child: Row(children: [
               _AllChip(label: t.allVibes, selected: _filter == 'all', onTap: () => setState(() => _filter = 'all')),
               const SizedBox(width: 8),
@@ -164,6 +166,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 8),
               ],
             ]),
+          ),
+        ),
+        // Şansına bırak — filtredeki rastgele bir flock'u önüne atar.
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+            child: _SurpriseButton(
+              label: t.surpriseMe,
+              onTap: () => _surprise(ranked, joinedIds),
+            ),
           ),
         ),
         if (ranked.isEmpty)
@@ -229,6 +241,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Zar at: katılabileceğin (üye olmadığın, dolu olmayan) flock'lardan
+  /// rastgele birini alt sayfada gösterir — spontane katılımın kestirmesi.
+  void _surprise(List<({Flock flock, double km})> ranked, Set<String> joinedIds) {
+    final t = AppL10n.of(context);
+    final pool = ranked
+        .where((e) => !joinedIds.contains(e.flock.id) && !e.flock.full)
+        .toList();
+    if (pool.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.surpriseNone)));
+      return;
+    }
+    final rnd = Random();
+    var pick = pool[rnd.nextInt(pool.length)];
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Container(
+          decoration: const BoxDecoration(
+            color: AppColors.bgPage,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderStrong,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(children: [
+              const Text('🎲', style: TextStyle(fontSize: 26)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(t.surpriseTitle, style: AppText.display(20)),
+                  Text(t.surpriseSubtitle, style: AppText.body(13, color: AppColors.textMuted)),
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            InviteCard(
+              flock: pick.flock,
+              distance: distanceLabel(pick.km),
+              onJoin: () {
+                Navigator.pop(sheetCtx);
+                _join(pick.flock);
+              },
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                widget.onOpenInvite?.call(pick.flock);
+              },
+            ),
+            const SizedBox(height: 12),
+            FlockButton(
+              label: t.spinAgain,
+              variant: FlockBtn.soft,
+              full: true,
+              leadingIcon: Icons.casino_rounded,
+              onPressed: pool.length < 2
+                  ? null
+                  : () => setSheet(() {
+                        var next = pick;
+                        while (next.flock.id == pick.flock.id) {
+                          next = pool[rnd.nextInt(pool.length)];
+                        }
+                        pick = next;
+                      }),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Future<void> _useGps(LocationController loc) async {
     final ok = await loc.useDeviceLocation();
     if (!ok && mounted) {
@@ -259,6 +351,35 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _busyJoinId = null);
     }
+  }
+}
+
+/// Koyu, tam genişlik "zar" butonu — spontane katılımın kahramanı.
+class _SurpriseButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _SurpriseButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.ink900, Color(0xFF3A3F52)],
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          boxShadow: AppColors.shadowCard,
+        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Text('🎲', style: TextStyle(fontSize: 17)),
+          const SizedBox(width: 8),
+          Text(label, style: AppText.body(14.5, weight: FontWeight.w800, color: Colors.white)),
+        ]),
+      ),
+    );
   }
 }
 
