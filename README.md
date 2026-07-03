@@ -2,6 +2,14 @@
 
 Flutter tabanlı mobil uygulama. Firebase (Auth + Firestore) ve Google Maps entegrasyonu ile feature-based mimari kullanır.
 
+## 📚 Dokümantasyon
+
+- [docs/PRODUCT.md](docs/PRODUCT.md) — Flock ne, neden (ürün tanımı + güvenlik vizyonu)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — kod haritası, veri modelleri, Firestore şeması
+- [docs/STATUS.md](docs/STATUS.md) — yapıldı / yapılacak + bilinen riskler
+
+> Yeni bir oturuma başlarken önce bu üç dosyayı oku — kodu baştan taramaya gerek kalmaz.
+
 ## Teknolojiler
 
 - **Flutter** (Dart)
