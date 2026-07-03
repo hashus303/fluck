@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../../../core/app_locale.dart';
@@ -146,9 +148,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _PastRow(vibeId: p[0], venue: p[1], when: p[2], people: int.parse(p[3])),
                 const SizedBox(height: 10),
               ],
-              const SizedBox(height: 12),
-              FlockButton(label: t.editProfile, variant: FlockBtn.secondary, full: true, onPressed: () {}),
-              if (FirebaseService.instance.isInitialized &&
+              // Dev seeder — yalnızca debug build + geliştirici hesabı.
+              if (kDebugMode &&
+                  FirebaseService.instance.isInitialized &&
                   AuthRepository.instance.currentUser?.email == 'haskartal303@gmail.com') ...[
                 const SizedBox(height: 12),
                 FlockButton(
@@ -177,6 +179,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: AppText.body(14, weight: FontWeight.w700, color: AppColors.danger)),
                   ),
                 ),
+                Center(
+                  child: TextButton(
+                    onPressed: _confirmDeleteAccount,
+                    child: Text(t.deleteAccount,
+                        style: AppText.body(13, weight: FontWeight.w700, color: AppColors.textMuted)),
+                  ),
+                ),
               ],
               const SizedBox(height: 24),
             ]),
@@ -184,6 +193,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// Play politikası: hesap oluşturan uygulama, uygulama içinden kalıcı hesap
+  /// silme sunmak zorunda. Önce Firestore verisi (profil + bildirimler), sonra
+  /// auth kaydı silinir; AuthGate akışı otomatik giriş ekranına döndürür.
+  Future<void> _confirmDeleteAccount() async {
+    final t = AppL10n.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.deleteAccountTitle),
+        content: Text(t.deleteAccountBody),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.deleteAccount,
+                style: const TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final uid = AuthRepository.instance.currentUser?.uid;
+    if (uid == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await UserProfileRepository.instance.deleteAccountData(uid);
+      await AuthRepository.instance.deleteAccount();
+    } on FirebaseAuthException catch (e) {
+      messenger.showSnackBar(SnackBar(
+          content: Text(e.code == 'requires-recent-login'
+              ? t.deleteAccountReauth
+              : t.errGeneric)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(t.errGeneric)));
+    }
   }
 }
 

@@ -31,4 +31,18 @@ class UserProfileRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
+  /// Hesap silme: bildirim alt koleksiyonunu ve profil belgesini kaldırır.
+  /// (Flock üyelikleri bilinçli olarak bırakılır — flock'lar en geç 2 saatte
+  /// kendiliğinden sona erer.)
+  Future<void> deleteAccountData(String uid) async {
+    final doc = _users.doc(uid);
+    final notifs = await doc.collection('notifications').get();
+    final batch = FirebaseFirestore.instance.batch();
+    for (final n in notifs.docs) {
+      batch.delete(n.reference);
+    }
+    batch.delete(doc);
+    await batch.commit();
+  }
 }

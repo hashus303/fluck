@@ -160,7 +160,21 @@ class AppL10nEn extends AppL10n {
   String get regularFlocker => 'Regular flocker';
 
   @override
-  String get editProfile => 'Edit profile';
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountBody =>
+      'Your profile and notifications are permanently deleted. This cannot be undone.';
+
+  @override
+  String get deleteAccountReauth =>
+      'For security you must have signed in recently — sign out, sign in again, then retry.';
+
+  @override
+  String get cancel => 'Cancel';
 
   @override
   String peopleCount(int count) {

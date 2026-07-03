@@ -27,4 +27,10 @@ class AuthRepository {
   }
 
   Future<void> signOut() => _auth.signOut();
+
+  /// Hesabı kalıcı olarak siler (Play "hesap silme" politikası gereği).
+  /// Son giriş eskiyse FirebaseAuth 'requires-recent-login' hatası fırlatır.
+  Future<void> deleteAccount() async {
+    await _auth.currentUser?.delete();
+  }
 }

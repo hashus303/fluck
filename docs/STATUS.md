@@ -45,6 +45,23 @@
 3. **Bildirim `create` açık** — Bildirim oluştururken `actorUid`'nin, isteği gönderen kullanıcının auth UID'si ile eşleşmesi zorunluluğu getirilerek sahtecilik engellendi.
 4. **Güvenlik / Trust Score entegrasyonu** — Güvenlik ekranındaki trust score ve kimlik doğrulama durum kartı, statik değerler yerine kullanıcının profilindeki gerçek verilerden beslenecek şekilde dinamikleştirildi.
 
+## 📦 Play Store hazırlığı (2026-07-04)
+
+Kod tarafı yapıldı:
+- **Release imzalama** — upload keystore + `android/key.properties` (gitignore'da) + Gradle signing config; dosya yoksa debug imzaya düşer
+- **Hesap silme** — Play politikası gereği uygulama içinden: onay diyaloğu → profil + bildirimler + auth kaydı silinir (`requires-recent-login` durumunda yeniden giriş istenir)
+- **Dev seeder `kDebugMode` arkasında** — release build'e hiç girmez
+- **User-Agent düzeltmeleri** — Nominatim ve OSM tile isteklerinde gerçek uygulama kimliği (`com.hashus303.fluck`)
+- Boş "Profili düzenle" butonu kaldırıldı
+
+Hâlâ gerekli (kod dışı):
+- Play Console hesabı, store metinleri, ekran görüntüleri, 512×512 ikon + 1024×500 feature graphic
+- **Gerçek uygulama ikonu** (hâlâ varsayılan Flutter ikonu — `flutter_launcher_icons`)
+- **Gizlilik politikası URL'si** + Data Safety formu (hesap, konum, foto verisi toplanıyor)
+- Web üzerinden hesap silme talebi sayfası (Play politikası ister)
+- İçerik derecelendirme anketi (18+ sosyal buluşma), internal testing track'te gerçek cihaz testi
+- Firestore rules'un canlıya deploy edilmesi + App Check (Play Integrity) + Play imza SHA'sının Firebase'e eklenmesi
+
 ## 🔴 Bilinen riskler / hatalar (kod incelemesinden)
 
 1. **`silent` parametresi ölü** — `location_controller.dart:42`. `load()` "sessiz GPS" beklerken ilk açılışta izin penceresi fırlar.

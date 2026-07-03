@@ -18,8 +18,10 @@ class GeoPlace {
 class GeocodingService {
   static const _host = 'nominatim.openstreetmap.org';
 
-  static Map<String, String> get _headers =>
-      kIsWeb ? const {} : const {'User-Agent': 'FluckApp/1.0 (dev test)'};
+  // Nominatim kullanım politikası geçerli bir tanıtım + iletişim ister.
+  static Map<String, String> get _headers => kIsWeb
+      ? const {}
+      : const {'User-Agent': 'Flock/1.0 (com.hashus303.fluck; haskartal303@gmail.com)'};
 
   /// İsim/adres → yerler. [near] verilirse o bölgeye öncelik verir.
   static Future<List<GeoPlace>> search(String query, {LatLng? near}) async {

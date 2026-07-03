@@ -73,6 +73,16 @@ API anahtarı gerekmez. Karşılığında iki kural geçerlidir:
 - [Tile kullanım politikasına](https://operations.osmfoundation.org/policies/tiles/) uyulmalıdır
   (geçerli `User-Agent` gönderilir; yüksek trafikte kendi tile sunucunuza geçin).
 
+### Release imzalama (Play Store)
+
+Release build `android/key.properties` dosyasından imzalanır (repoya girmez, `.gitignore`'da).
+Keystore: `%USERPROFILE%\fluck-upload-key.jks` (alias `upload`). **Bu dosyayı ve şifresini yedekle** —
+kaybolursa Play'de güncelleme yayınlanamaz. `key.properties` yoksa build debug imzasına düşer.
+
+```bash
+flutter build appbundle   # imzalı AAB: build/app/outputs/bundle/release/
+```
+
 ## Çalıştırma
 
 ```bash

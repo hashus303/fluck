@@ -373,11 +373,35 @@ abstract class AppL10n {
   /// **'Regular flocker'**
   String get regularFlocker;
 
-  /// No description provided for @editProfile.
+  /// No description provided for @deleteAccount.
   ///
   /// In en, this message translates to:
-  /// **'Edit profile'**
-  String get editProfile;
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile and notifications are permanently deleted. This cannot be undone.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @deleteAccountReauth.
+  ///
+  /// In en, this message translates to:
+  /// **'For security you must have signed in recently — sign out, sign in again, then retry.'**
+  String get deleteAccountReauth;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 
   /// No description provided for @peopleCount.
   ///

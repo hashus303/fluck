@@ -46,6 +46,9 @@ app.*.map.json
 
 # Yerel geliştirme sırları / yardımcı dosyalar (push edilmez)
 /certs/
+android/key.properties
+*.jks
+*.keystore
 .demo_account
 .fb_project
 .claude/

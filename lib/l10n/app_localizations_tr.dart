@@ -161,7 +161,21 @@ class AppL10nTr extends AppL10n {
   String get regularFlocker => 'Düzenli flocker';
 
   @override
-  String get editProfile => 'Profili düzenle';
+  String get deleteAccount => 'Hesabı sil';
+
+  @override
+  String get deleteAccountTitle => 'Hesabın silinsin mi?';
+
+  @override
+  String get deleteAccountBody =>
+      'Profilin ve bildirimlerin kalıcı olarak silinir. Bu işlem geri alınamaz.';
+
+  @override
+  String get deleteAccountReauth =>
+      'Güvenlik için yakın zamanda giriş yapılmış olmalı — çıkış yapıp yeniden giriş yaptıktan sonra tekrar dene.';
+
+  @override
+  String get cancel => 'Vazgeç';
 
   @override
   String peopleCount(int count) {
