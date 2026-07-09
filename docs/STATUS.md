@@ -54,13 +54,17 @@ Kod tarafı yapıldı:
 - **User-Agent düzeltmeleri** — Nominatim ve OSM tile isteklerinde gerçek uygulama kimliği (`com.hashus303.fluck`)
 - Boş "Profili düzenle" butonu kaldırıldı
 
+Yapıldı (devam):
+- **Gerçek uygulama ikonu** — marka coral + "yükselen flock" motifi; `assets/icon/` kaynak, `flutter_launcher_icons` ile tüm Android (adaptive dahil) / iOS / web boyutları üretildi
+- **Store görselleri** — `store_assets/play-icon-512.png` + `store_assets/play-feature-1024x500.png`
+- **Gizlilik politikası + hesap silme sayfaları** — `docs/privacy-policy.html`, `docs/hesap-silme.html` (TR+EN); GitHub Pages üzerinden yayınlanır
+
 Hâlâ gerekli (kod dışı):
-- Play Console hesabı, store metinleri, ekran görüntüleri, 512×512 ikon + 1024×500 feature graphic
-- **Gerçek uygulama ikonu** (hâlâ varsayılan Flutter ikonu — `flutter_launcher_icons`)
-- **Gizlilik politikası URL'si** + Data Safety formu (hesap, konum, foto verisi toplanıyor)
-- Web üzerinden hesap silme talebi sayfası (Play politikası ister)
+- Play Console hesabı, store metinleri, ekran görüntüleri (cihazdan)
+- Data Safety formunun doldurulması (politika sayfası hazır)
 - İçerik derecelendirme anketi (18+ sosyal buluşma), internal testing track'te gerçek cihaz testi
-- Firestore rules'un canlıya deploy edilmesi + App Check (Play Integrity) + Play imza SHA'sının Firebase'e eklenmesi
+- Firestore rules'un canlıya deploy edilmesi (`firebase login` + `firebase deploy --only firestore:rules`) + App Check (Play Integrity) + Play imza SHA'sının Firebase'e eklenmesi
+- PR'lar merge olunca GitHub Pages kaynağını `main`'e çevirmek
 
 ## 🔴 Bilinen riskler / hatalar (kod incelemesinden)
 
