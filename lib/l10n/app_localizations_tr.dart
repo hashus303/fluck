@@ -272,8 +272,20 @@ class AppL10nTr extends AppL10n {
   String get locUseGps => 'Konumumu kullan';
 
   @override
-  String get locGpsFailed =>
-      'Konum alınamadı — izni aç (web\'de HTTPS gerekir).';
+  String get locGpsFailed => 'Konum alınamadı — tekrar dene.';
+
+  @override
+  String get locServiceOff => 'Konum servisi kapalı — telefonunun konumunu aç.';
+
+  @override
+  String get locPermDenied => 'Konum izni verilmedi.';
+
+  @override
+  String get locPermDeniedForever =>
+      'Konum izni kapalı — Ayarlar\'dan açman gerekiyor.';
+
+  @override
+  String get locOpenSettings => 'Ayarları aç';
 
   @override
   String get authTitle => 'Tek başına dolaşmayı bırak.';

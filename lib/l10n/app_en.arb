@@ -97,7 +97,11 @@
   "locChangeHint": "Location (GPS soon)",
   "locMyLocation": "My location",
   "locUseGps": "Use my location",
-  "locGpsFailed": "Couldn't get location — allow permission (HTTPS needed on web).",
+  "locGpsFailed": "Couldn't get location — try again.",
+  "locServiceOff": "Location is off — turn on your phone's location.",
+  "locPermDenied": "Location permission denied.",
+  "locPermDeniedForever": "Location permission is off — enable it in Settings.",
+  "locOpenSettings": "Open Settings",
 
   "authTitle": "Stop wandering alone.",
   "authSubtitle": "Pick a vibe, join a flock nearby, and go. Three people minimum, real venues, two-hour window — safety built into every step.",

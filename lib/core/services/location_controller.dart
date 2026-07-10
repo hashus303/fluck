@@ -37,22 +37,22 @@ class LocationController extends ChangeNotifier {
     await useDeviceLocation(silent: true);
   }
 
-  /// Cihaz konumunu almayı dener. Başarısızsa mevcut konumu korur.
-  /// [silent] true ise hata/izin durumunu sessiz geçer.
-  Future<bool> useDeviceLocation({bool silent = false}) async {
+  /// Cihaz konumunu almayı dener. Başarısızsa mevcut konumu korur ve
+  /// hata nedenini döner ([LocationError.none] = başarılı).
+  Future<LocationError> useDeviceLocation({bool silent = false}) async {
     _locating = true;
     notifyListeners();
-    final pos = await LocationService.instance.getCurrent();
+    final res = await LocationService.instance.getCurrent();
     _locating = false;
-    if (pos == null) {
+    if (!res.ok) {
       notifyListeners();
-      return false;
+      return res.error;
     }
-    _point = pos;
+    _point = res.point!;
     _isGps = true;
     await _persist();
     notifyListeners();
-    return true;
+    return LocationError.none;
   }
 
   Future<void> _persist() async {

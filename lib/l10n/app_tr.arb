@@ -89,7 +89,11 @@
   "locChangeHint": "Konum (yakında GPS)",
   "locMyLocation": "Konumum",
   "locUseGps": "Konumumu kullan",
-  "locGpsFailed": "Konum alınamadı — izni aç (web'de HTTPS gerekir).",
+  "locGpsFailed": "Konum alınamadı — tekrar dene.",
+  "locServiceOff": "Konum servisi kapalı — telefonunun konumunu aç.",
+  "locPermDenied": "Konum izni verilmedi.",
+  "locPermDeniedForever": "Konum izni kapalı — Ayarlar'dan açman gerekiyor.",
+  "locOpenSettings": "Ayarları aç",
 
   "authTitle": "Tek başına dolaşmayı bırak.",
   "authSubtitle": "Bir vibe seç, yakındaki bir flock'a katıl ve çık. En az üç kişi, gerçek mekanlar, iki saatlik pencere — her adımda güvenlik.",

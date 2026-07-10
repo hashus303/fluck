@@ -574,8 +574,32 @@ abstract class AppL10n {
   /// No description provided for @locGpsFailed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t get location — allow permission (HTTPS needed on web).'**
+  /// **'Couldn\'t get location — try again.'**
   String get locGpsFailed;
+
+  /// No description provided for @locServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is off — turn on your phone\'s location.'**
+  String get locServiceOff;
+
+  /// No description provided for @locPermDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied.'**
+  String get locPermDenied;
+
+  /// No description provided for @locPermDeniedForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is off — enable it in Settings.'**
+  String get locPermDeniedForever;
+
+  /// No description provided for @locOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get locOpenSettings;
 
   /// No description provided for @authTitle.
   ///

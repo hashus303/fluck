@@ -174,6 +174,7 @@ class _LocationPickerState extends State<LocationPicker> {
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.hashus303.fluck',
+                  retinaMode: RetinaMode.isHighDensity(context),
                 ),
                 const OsmAttribution(),
               ],

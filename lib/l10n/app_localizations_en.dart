@@ -271,8 +271,21 @@ class AppL10nEn extends AppL10n {
   String get locUseGps => 'Use my location';
 
   @override
-  String get locGpsFailed =>
-      'Couldn\'t get location — allow permission (HTTPS needed on web).';
+  String get locGpsFailed => 'Couldn\'t get location — try again.';
+
+  @override
+  String get locServiceOff =>
+      'Location is off — turn on your phone\'s location.';
+
+  @override
+  String get locPermDenied => 'Location permission denied.';
+
+  @override
+  String get locPermDeniedForever =>
+      'Location permission is off — enable it in Settings.';
+
+  @override
+  String get locOpenSettings => 'Open Settings';
 
   @override
   String get authTitle => 'Stop wandering alone.';

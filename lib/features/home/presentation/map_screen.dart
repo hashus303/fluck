@@ -49,6 +49,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _map(LocationController loc, List<Flock> flocks) {
+    final retina = RetinaMode.isHighDensity(context);
     final selected = _selectedId == null
         ? null
         : flocks.where((f) => f.id == _selectedId).firstOrNull;
@@ -66,6 +67,7 @@ class _MapScreenState extends State<MapScreen> {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.hashus303.fluck',
+              retinaMode: retina,
             ),
             MarkerLayer(markers: [
               // Kullanıcının konumu
