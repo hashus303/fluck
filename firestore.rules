@@ -3,34 +3,67 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Bir flock belgesinin verisini getirir (bildirim dogrulamasi icin).
+    function flockData(flockId) {
+      return get(/databases/$(database)/documents/flocks/$(flockId)).data;
+    }
+
     // Kullanıcı profilleri — herkes okuyabilir (keşif için),
     // ama sadece sahibi kendi belgesini yazabilir.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
 
-      // Bildirimler — herkes (ör. flock'a katılan) host'a bildirim oluşturabilir,
-      // ama yalnızca kendi adına (actorUid == kendisi) — sahtecilik engellenir.
-      // Sadece sahibi okuyabilir/işaretleyebilir/silebilir.
+      // Bildirimler — yalnizca, KATILDIGIN bir flock'un HOST'una, kendi adina
+      // ('actorUid == kendisi') bir 'join' bildirimi olusturabilirsin.
+      // Boylece rastgele bir kullaniciya sahte/gonderen-taklidi bildirim
+      // enjekte edilmesi engellenir. Okuma/isaretleme/silme yalnizca sahibine.
       match /notifications/{notifId} {
         allow create: if request.auth != null
-                      && request.resource.data.actorUid == request.auth.uid;
+                      && request.resource.data.actorUid == request.auth.uid
+                      && request.resource.data.type == 'join'
+                      && userId == flockData(request.resource.data.flockId).hostUid
+                      && request.auth.uid in flockData(request.resource.data.flockId).memberUids;
         allow read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     // Flock'lar — giriş yapan herkes görebilir (keşif).
-    // Oluşturan kişi host olmalı. Güncelleme YALNIZCA üye listesi alanlarını
-    // değiştirebilir (host/mekan/süre/konum vb. dokunulamaz) ve kapasiteyi
-    // aşamaz. Silme yalnızca host'a açık.
+    // Oluşturan kişi host olmalı. Silme yalnızca host'a açık.
     match /flocks/{flockId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
+
+      // Güncelleme YALNIZCA çağıranın KENDİ üyeliğini değiştirebilir:
+      // kendi uid'ini ekler (join) ya da çıkarır (leave). Başkasının üyeliğine
+      // ya da isim girdisine dokunamaz; host/mekan/süre/konum/total değişemez;
+      // kapasite aşılamaz.
       allow update: if request.auth != null
-                    && request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['memberUids', 'memberNames'])
-                    && request.resource.data.memberUids.size() <= resource.data.total;
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['memberUids', 'memberNames'])
+        // memberNames haritasında yalnızca çağıranın kendi girdisi değişebilir.
+        && request.resource.data.memberNames.diff(resource.data.memberNames)
+             .affectedKeys().hasOnly([request.auth.uid])
+        && (
+          // JOIN — memberUids'e SADECE kendi uid'ini ekler, kapasiteyi aşmaz.
+          (
+            request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+            && request.resource.data.memberUids.hasAll(resource.data.memberUids)
+            && request.resource.data.memberUids
+                 .hasOnly(resource.data.memberUids.concat([request.auth.uid]))
+            && request.resource.data.memberUids.size() <= resource.data.total
+          )
+          ||
+          // LEAVE — memberUids'ten SADECE kendi uid'ini çıkarır.
+          (
+            request.resource.data.memberUids.size() == resource.data.memberUids.size() - 1
+            && resource.data.memberUids.hasAll(request.resource.data.memberUids)
+            && resource.data.memberUids
+                 .hasOnly(request.resource.data.memberUids.concat([request.auth.uid]))
+          )
+        );
+
       allow delete: if request.auth != null
                     && resource.data.hostUid == request.auth.uid;
     }
