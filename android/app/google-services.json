@@ -12,7 +12,20 @@
           "package_name": "com.hashus303.fluck"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "182331722242-4592qu7djvca8b4562g8disetvt9htlh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hashus303.fluck",
+            "certificate_hash": "209190e897070389c20576c7e797effb487581f9"
+          }
+        },
+        {
+          "client_id": "182331722242-lfi0a0gm6clgksfv1dp9g1njptvi4abi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAtNexiObCNaurgfpFlqFj-zf5vpWkAzGY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "182331722242-lfi0a0gm6clgksfv1dp9g1njptvi4abi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "182331722242-q10r6gfmk84d9fkkqopfjifre6bf9lno.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hashus303.fluck"
+              }
+            }
+          ]
         }
       }
     }

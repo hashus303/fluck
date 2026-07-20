@@ -77,6 +77,31 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _googleSignIn() async {
+    final t = AppL10n.of(context);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await AuthRepository.instance.signInWithGoogle();
+      // Başarılı: authStateChanges akışı uygulamayı otomatik geçirir.
+    } on FirebaseAuthException catch (e) {
+      // Kullanıcı akışı iptal ettiyse hata gösterme.
+      const cancelled = {
+        'web-context-canceled', 'web-context-cancelled',
+        'popup-closed-by-user', 'canceled', 'cancelled', 'user-cancelled',
+      };
+      if (mounted && !cancelled.contains(e.code)) {
+        setState(() => _error = _mapError(t, e));
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = _mapError(t, e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppL10n.of(context);
@@ -89,16 +114,17 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Form(
               key: _formKey,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // logo mark
+                // logo — gerçek uygulama ikonu
                 Container(
-                  width: 64, height: 64,
                   decoration: BoxDecoration(
-                    color: AppColors.brand,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: AppColors.glowCoral,
                   ),
-                  alignment: Alignment.center,
-                  child: const Text('🪶', style: TextStyle(fontSize: 30)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset('assets/icon/icon.png',
+                        width: 64, height: 64, fit: BoxFit.cover),
+                  ),
                 ),
                 const SizedBox(height: 22),
                 Text(_isSignUp ? t.createAccount : t.welcomeBack, style: AppText.display(30)),
@@ -169,11 +195,26 @@ class _AuthScreenState extends State<AuthScreen> {
                     ? const Center(child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: CircularProgressIndicator(color: AppColors.brand)))
-                    : FlockButton(
-                        label: _isSignUp ? t.signUp : t.signIn,
-                        full: true,
-                        onPressed: _submit,
-                      ),
+                    : Column(children: [
+                        FlockButton(
+                          label: _isSignUp ? t.signUp : t.signIn,
+                          full: true,
+                          onPressed: _submit,
+                        ),
+                        const SizedBox(height: 14),
+                        Row(children: [
+                          const Expanded(child: Divider(color: AppColors.borderSubtle)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(t.orDivider,
+                                style: AppText.body(12.5, weight: FontWeight.w600,
+                                    color: AppColors.textFaint)),
+                          ),
+                          const Expanded(child: Divider(color: AppColors.borderSubtle)),
+                        ]),
+                        const SizedBox(height: 14),
+                        _GoogleButton(label: t.continueWithGoogle, onTap: _googleSignIn),
+                      ]),
                 const SizedBox(height: 18),
                 Center(
                   child: TextButton(
@@ -197,6 +238,39 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// "Google ile devam et" — beyaz zemin, ince kenarlık (Google marka rehberi).
+class _GoogleButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _GoogleButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: AppColors.borderSubtle, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Text('G',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF4285F4))),
+          const SizedBox(width: 10),
+          Text(label,
+              style: AppText.body(15, weight: FontWeight.w700, color: AppColors.textStrong)),
+        ]),
       ),
     );
   }
