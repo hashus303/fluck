@@ -482,6 +482,49 @@ class AppL10nEn extends AppL10n {
   String get rateDone => 'Done';
 
   @override
+  String get reportUser => 'Report';
+
+  @override
+  String get blockUser => 'Block';
+
+  @override
+  String get blockConfirmTitle => 'Block this member?';
+
+  @override
+  String get blockConfirmBody =>
+      'You won\'t see this person\'s flocks anymore. This can\'t be undone for now.';
+
+  @override
+  String get blockDone => 'Blocked.';
+
+  @override
+  String get reportTitle => 'What do you want to report?';
+
+  @override
+  String get reportReasonHarassment => 'Harassment';
+
+  @override
+  String get reportReasonFake => 'Fake profile';
+
+  @override
+  String get reportReasonNoShow => 'Didn\'t show up';
+
+  @override
+  String get reportReasonSafety => 'Safety concern';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportNoteHint => 'Add a short note (optional)';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportThanks => 'Report received — we\'ll review it.';
+
+  @override
   String get statRatingReal => 'Avg rating';
 
   @override

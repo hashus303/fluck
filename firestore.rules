@@ -103,6 +103,19 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Şikayetler — kullanıcı yalnızca KENDİ adına şikayet oluşturabilir;
+    // kimse (şikayet eden dahil) istemciden okuyamaz. İnceleme admin
+    // tarafında (konsol/araç, kurallara tabi değil).
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.reportedUid is string
+        && request.resource.data.reportedUid != request.auth.uid
+        && request.resource.data.reason in
+             ['harassment', 'fake', 'no_show', 'safety', 'other'];
+      allow read, update, delete: if false;
+    }
+
     // Diğer her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;

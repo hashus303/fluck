@@ -967,6 +967,90 @@ abstract class AppL10n {
   /// **'Done'**
   String get rateDone;
 
+  /// No description provided for @reportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportUser;
+
+  /// No description provided for @blockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get blockUser;
+
+  /// No description provided for @blockConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block this member?'**
+  String get blockConfirmTitle;
+
+  /// No description provided for @blockConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see this person\'s flocks anymore. This can\'t be undone for now.'**
+  String get blockConfirmBody;
+
+  /// No description provided for @blockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked.'**
+  String get blockDone;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to report?'**
+  String get reportTitle;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonFake.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake profile'**
+  String get reportReasonFake;
+
+  /// No description provided for @reportReasonNoShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t show up'**
+  String get reportReasonNoShow;
+
+  /// No description provided for @reportReasonSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety concern'**
+  String get reportReasonSafety;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a short note (optional)'**
+  String get reportNoteHint;
+
+  /// No description provided for @reportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
+
+  /// No description provided for @reportThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Report received — we\'ll review it.'**
+  String get reportThanks;
+
   /// No description provided for @statRatingReal.
   ///
   /// In en, this message translates to:

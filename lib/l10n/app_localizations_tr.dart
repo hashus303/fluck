@@ -483,6 +483,49 @@ class AppL10nTr extends AppL10n {
   String get rateDone => 'Bitti';
 
   @override
+  String get reportUser => 'Şikayet et';
+
+  @override
+  String get blockUser => 'Engelle';
+
+  @override
+  String get blockConfirmTitle => 'Engellensin mi?';
+
+  @override
+  String get blockConfirmBody =>
+      'Engellediğin kişinin flock\'larını artık görmezsin. Bu işlem şimdilik geri alınamaz.';
+
+  @override
+  String get blockDone => 'Engellendi.';
+
+  @override
+  String get reportTitle => 'Neyi bildirmek istersin?';
+
+  @override
+  String get reportReasonHarassment => 'Taciz / rahatsız etme';
+
+  @override
+  String get reportReasonFake => 'Sahte profil';
+
+  @override
+  String get reportReasonNoShow => 'Buluşmaya gelmedi';
+
+  @override
+  String get reportReasonSafety => 'Güvenlik endişesi';
+
+  @override
+  String get reportReasonOther => 'Diğer';
+
+  @override
+  String get reportNoteHint => 'İstersen kısaca anlat (opsiyonel)';
+
+  @override
+  String get reportSend => 'Gönder';
+
+  @override
+  String get reportThanks => 'Şikayetin alındı — inceleyeceğiz.';
+
+  @override
   String get statRatingReal => 'Ortalama puan';
 
   @override

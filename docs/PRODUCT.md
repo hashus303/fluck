@@ -47,6 +47,25 @@ yapıldığını [STATUS.md](STATUS.md) gösterir.
 - **Profil + güven skoru**
 - **Güvenlik merkezi** — konum paylaşımı, kimlik durumu, trust score
 
+## Gelir modeli (plan, 2026-07-20)
+
+Erken dönemde **para istenmez** — bu kategorinin asıl problemi likidite (açan kişinin
+katılabileceği canlı flock görmesi). Strateji: tek şehirde/semtte yoğunlaş, tutundur,
+sonra genişle. Gelir aşamaları:
+
+1. **Kısa vade (lansman → tutunma):** tamamen ücretsiz. Ölçüt gelir değil, haftalık dönen kullanıcı.
+2. **Orta vade — Premium abonelik:** sınırsız flock oluşturma, flock boost, gelişmiş
+   filtreler, sadece-doğrulanmışlar modu. Play Billing (%15 kesinti), beklenen dönüşüm
+   aktifin %2-5'i.
+3. **Asıl koz — Partner mekan (B2B):** mekana belirli saatte 3-8 kişilik hazır müşteri
+   grubu getiriyoruz; "Flock noktası" aylık listeleme ücreti / grup başına komisyon.
+   Güvenlik vizyonundaki "sadece partner mekanlar" maddesiyle aynı altyapı.
+4. **Reklam bilinçli olarak yok** — güven satan ürünle çelişir, TR eCPM'i düşük.
+5. **Varlık değeri:** gerçek tutunma (retention) gösterildiğinde uygulamanın kendisi
+   yatırım/satın alma konusu olur; doğrulama+güvenlik konumlandırması bu hikâyenin çekirdeği.
+
+> Pratik not: ödeme almak için Play ödeme profili + vergisel yapı (şahıs şirketi vb.) gerekir.
+
 ## Sözlük
 
 - **Flock** — bir aktivite daveti / buluşma grubu (uygulamanın temel nesnesi)

@@ -12,6 +12,7 @@ import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../profile/data/user_profile_repository.dart';
+import '../../safety/data/moderation_repository.dart';
 import '../data/flock_doc.dart';
 import '../data/flock_repository.dart';
 
@@ -186,10 +187,17 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                 const SizedBox(height: 12),
                 Wrap(spacing: 10, runSpacing: 12, children: [
                   for (var i = 0; i < doc.memberUids.length; i++)
-                    _MemberChip(
-                      uid: doc.memberUids[i],
-                      name: doc.memberNames[doc.memberUids[i]] ?? '',
-                      isHost: doc.memberUids[i] == doc.hostUid,
+                    GestureDetector(
+                      // Kendine değil; sadece canlı modda diğer üyelere
+                      // şikayet/engelleme menüsü açılır.
+                      onTap: (!_live || doc.memberUids[i] == _myUid)
+                          ? null
+                          : () => _memberActions(doc, doc.memberUids[i]),
+                      child: _MemberChip(
+                        uid: doc.memberUids[i],
+                        name: doc.memberNames[doc.memberUids[i]] ?? '',
+                        isHost: doc.memberUids[i] == doc.hostUid,
+                      ),
                     ),
                 ]),
                 const SizedBox(height: 8),
@@ -248,6 +256,136 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.errGeneric)));
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Üye çipine dokununca: şikayet et / engelle.
+  Future<void> _memberActions(FlockDoc doc, String uid) async {
+    final t = AppL10n.of(context);
+    final name = doc.memberNames[uid] ?? '';
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 8),
+          Text(name, style: AppText.body(15, weight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          ListTile(
+            leading: const Icon(Icons.flag_outlined, color: AppColors.warning),
+            title: Text(t.reportUser, style: AppText.body(15, weight: FontWeight.w600)),
+            onTap: () {
+              Navigator.pop(ctx);
+              _reportMember(doc, uid);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.block, color: AppColors.danger),
+            title: Text(t.blockUser, style: AppText.body(15, weight: FontWeight.w600)),
+            onTap: () {
+              Navigator.pop(ctx);
+              _blockMember(uid);
+            },
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _reportMember(FlockDoc doc, String uid) async {
+    final t = AppL10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    const reasons = ['harassment', 'fake', 'no_show', 'safety', 'other'];
+    String reasonLabel(String r) => switch (r) {
+          'harassment' => t.reportReasonHarassment,
+          'fake' => t.reportReasonFake,
+          'no_show' => t.reportReasonNoShow,
+          'safety' => t.reportReasonSafety,
+          _ => t.reportReasonOther,
+        };
+    // 1) Sebep seç
+    final reason = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 12),
+          Text(t.reportTitle, style: AppText.body(15, weight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          for (final r in reasons)
+            ListTile(
+              dense: true,
+              title: Text(reasonLabel(r), style: AppText.body(14.5, weight: FontWeight.w600)),
+              onTap: () => Navigator.pop(ctx, r),
+            ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (reason == null || !mounted) return;
+    // 2) Opsiyonel not + gönder
+    final noteCtrl = TextEditingController();
+    final send = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(reasonLabel(reason)),
+        content: TextField(
+          controller: noteCtrl,
+          maxLines: 3,
+          maxLength: 300,
+          decoration: InputDecoration(hintText: t.reportNoteHint),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(t.reportSend)),
+        ],
+      ),
+    );
+    final note = noteCtrl.text;
+    noteCtrl.dispose();
+    if (send != true) return;
+    try {
+      await ModerationRepository.instance.report(
+        reporterUid: _myUid!,
+        reportedUid: uid,
+        reason: reason,
+        flockId: widget.flockId,
+        note: note,
+      );
+      messenger.showSnackBar(SnackBar(content: Text(t.reportThanks)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(t.errGeneric)));
+    }
+  }
+
+  Future<void> _blockMember(String uid) async {
+    final t = AppL10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.blockConfirmTitle),
+        content: Text(t.blockConfirmBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(t.blockUser, style: const TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ModerationRepository.instance.block(_myUid!, uid);
+      messenger.showSnackBar(SnackBar(content: Text(t.blockDone)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(t.errGeneric)));
     }
   }
 

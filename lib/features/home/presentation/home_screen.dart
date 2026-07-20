@@ -19,6 +19,7 @@ import '../../flock/data/rating_repository.dart';
 import '../../notifications/data/notification_repository.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/data/user_profile_repository.dart';
+import '../../safety/data/moderation_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   final void Function(Flock)? onOpenInvite;
@@ -54,8 +55,21 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted && p != null) setState(() => _myName = p.name);
         });
         _loadRatePrompts();
+        // Engel listesi: feed filtresi için yükle ve değişimini izle.
+        ModerationRepository.instance.loadBlocks(_myUid!);
+        ModerationRepository.instance.blocked.addListener(_onBlockedChanged);
       }
     }
+  }
+
+  void _onBlockedChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    ModerationRepository.instance.blocked.removeListener(_onBlockedChanged);
+    super.dispose();
   }
 
   Future<void> _loadRatePrompts() async {
@@ -183,7 +197,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
             return const Center(child: CircularProgressIndicator(color: AppColors.brand));
           }
-          final docs = snap.data ?? const <FlockDoc>[];
+          // Engellenen kullanıcıların (host ya da üye) flock'ları gizlenir.
+          final docs = (snap.data ?? const <FlockDoc>[])
+              .where((d) => !ModerationRepository.instance
+                  .hidesFlock(d.hostUid, d.memberUids))
+              .toList();
           final flocks = docs.map((d) => d.toFlock()).toList();
           return _feed(loc, flocks, joinedIds: {
             for (final d in docs)

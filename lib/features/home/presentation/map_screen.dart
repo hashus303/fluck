@@ -13,6 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../flock/data/flock_doc.dart';
 import '../../flock/data/flock_repository.dart';
+import '../../safety/data/moderation_repository.dart';
 
 /// Harita ekranı — gerçek OpenStreetMap üzerinde yakındaki flock'lar.
 /// Anahtar gerektirmez (OSM tile API + zorunlu atıf). Pin'e dokununca altta
@@ -40,8 +41,12 @@ class _MapScreenState extends State<MapScreen> {
       return StreamBuilder<List<FlockDoc>>(
         stream: FlockRepository.instance.watchActive(),
         builder: (context, snap) {
-          final flocks =
-              (snap.data ?? const <FlockDoc>[]).map((d) => d.toFlock()).toList();
+          // Engellenen kullanıcıların flock'ları haritada da gizlenir.
+          final flocks = (snap.data ?? const <FlockDoc>[])
+              .where((d) => !ModerationRepository.instance
+                  .hidesFlock(d.hostUid, d.memberUids))
+              .map((d) => d.toFlock())
+              .toList();
           return _map(loc, flocks);
         },
       );
