@@ -58,3 +58,6 @@ SECURITY_REVIEW.md
 # TestSprite (tool-generated test artifacts)
 testsprite_tests/
 .testsprite/
+
+# Yerel admin inceleme çıktısı (kişisel fotoğraflar içerir)
+tools/review.html

@@ -26,21 +26,70 @@ class UserProfileRepository {
 
   /// Onboarding sonunda profili kaydeder (merge ile).
   Future<void> save(UserProfile profile) {
+    _photoCache.remove(profile.uid);
     return _users.doc(profile.uid).set({
       ...profile.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 
-  /// Hesap silme: bildirim alt koleksiyonunu ve profil belgesini kaldırır.
-  /// (Flock üyelikleri bilinçli olarak bırakılır — flock'lar en geç 2 saatte
-  /// kendiliğinden sona erer.)
+  /// Profil fotoğrafını günceller (profil ekranındaki "fotoğraf değiştir").
+  Future<void> updatePhoto(String uid, String photoB64) {
+    _photoCache.remove(uid);
+    return _users.doc(uid).set({
+      'photoB64': photoB64,
+      'photoProvided': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /// Doğrulama selfie'sini kilitli private alanına yazar. Kurallar gereği
+  /// bu belgeyi yalnızca sahibi yazabilir/okuyabilir; inceleme konsoldan
+  /// (admin) yapılır ve sonucu `verificationStatus` alanına işlenir.
+  Future<void> saveVerificationSelfie(String uid, String selfieB64) {
+    return _users.doc(uid).collection('private').doc('verification').set({
+      'selfieB64': selfieB64,
+      'submittedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Reddedilen kullanıcı yeni selfie gönderir: selfie private alana yazılır,
+  /// statü tekrar 'pending' olur (kurallar 'verified' yazmayı zaten engeller).
+  Future<void> resubmitSelfie(String uid, String selfieB64) async {
+    await saveVerificationSelfie(uid, selfieB64);
+    await _users.doc(uid).set({
+      'selfieProvided': true,
+      'verificationStatus': 'pending',
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /// Üye avatarları için profil fotoğrafı (base64) — basit bellek önbellekli.
+  final Map<String, String?> _photoCache = {};
+  Future<String?> fetchPhotoB64(String uid) async {
+    if (_photoCache.containsKey(uid)) return _photoCache[uid];
+    try {
+      final p = await fetch(uid);
+      _photoCache[uid] = p?.photoB64;
+    } catch (_) {
+      return null; // çevrimdışı / Firebase yok — avatar baş harfe düşer
+    }
+    return _photoCache[uid];
+  }
+
+  /// Hesap silme: bildirimler, private doğrulama verisi ve profil belgesi
+  /// kaldırılır. (Flock üyelikleri bilinçli olarak bırakılır — flock'lar en
+  /// geç 2 saatte kendiliğinden sona erer.)
   Future<void> deleteAccountData(String uid) async {
     final doc = _users.doc(uid);
     final notifs = await doc.collection('notifications').get();
+    final privates = await doc.collection('private').get();
     final batch = FirebaseFirestore.instance.batch();
     for (final n in notifs.docs) {
       batch.delete(n.reference);
+    }
+    for (final p in privates.docs) {
+      batch.delete(p.reference);
     }
     batch.delete(doc);
     await batch.commit();

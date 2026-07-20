@@ -144,7 +144,8 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                       children: [
                         TileLayer(
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.fluck.app',
+                          userAgentPackageName: 'com.hashus303.fluck',
+                          retinaMode: RetinaMode.isHighDensity(context),
                         ),
                         MarkerLayer(markers: [
                           Marker(
@@ -153,6 +154,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                             child: VibeDot(vibe: v, size: 44),
                           ),
                         ]),
+                        const OsmAttribution(),
                       ],
                     ),
                   ),
@@ -185,6 +187,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                 Wrap(spacing: 10, runSpacing: 12, children: [
                   for (var i = 0; i < doc.memberUids.length; i++)
                     _MemberChip(
+                      uid: doc.memberUids[i],
                       name: doc.memberNames[doc.memberUids[i]] ?? '',
                       isHost: doc.memberUids[i] == doc.hostUid,
                     ),
@@ -264,13 +267,19 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
 }
 
 class _MemberChip extends StatelessWidget {
+  final String uid;
   final String name;
   final bool isHost;
-  const _MemberChip({required this.name, required this.isHost});
+  const _MemberChip({required this.uid, required this.name, required this.isHost});
   @override
   Widget build(BuildContext context) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      FlockAvatar(name: name, size: 52),
+      // Üyenin gerçek profil fotoğrafı (varsa) — yoksa baş harfler.
+      FutureBuilder<String?>(
+        future: UserProfileRepository.instance.fetchPhotoB64(uid),
+        builder: (context, snap) =>
+            FlockAvatar(name: name, size: 52, photoB64: snap.data),
+      ),
       const SizedBox(height: 6),
       SizedBox(
         width: 64,

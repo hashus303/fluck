@@ -15,6 +15,7 @@ import 'features/home/presentation/home_screen.dart';
 import 'features/profile/data/user_profile.dart';
 import 'features/profile/data/user_profile_repository.dart';
 import 'features/profile/presentation/onboarding_screen.dart';
+import 'features/profile/presentation/verification_gate_screen.dart';
 import 'features/home/presentation/map_screen.dart';
 import 'features/invite/presentation/invite_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
@@ -140,6 +141,13 @@ class _ProfileGate extends StatelessWidget {
         final profile = snap.data;
         if (profile == null || !profile.onboardingComplete) {
           return OnboardingScreen(uid: uid, email: email);
+        }
+        // Doğrulama kapısı: selfie onaylanmadan uygulama açılmaz.
+        // (Geliştirici hesabı test için muaf; statü canlı izlendiğinden
+        // admin onayı gelir gelmez uygulama kendiliğinden açılır.)
+        final isDev = email == 'haskartal303@gmail.com';
+        if (!profile.isVerified && !isDev) {
+          return VerificationGateScreen(profile: profile);
         }
         return const RootScreen();
       },

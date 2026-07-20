@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/firebase_service.dart';
+import '../../../core/services/image_util.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart';
 import '../data/interests.dart';
 import '../data/user_profile.dart';
 import '../data/user_profile_repository.dart';
@@ -40,6 +45,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool get _isDev => widget.email == 'haskartal303@gmail.com';
 
   @override
+  void initState() {
+    super.initState();
+    // Google ile girişte adı önceden doldur (kullanıcı değiştirebilir).
+    if (FirebaseService.instance.isInitialized) {
+      final displayName = AuthRepository.instance.currentUser?.displayName;
+      if (displayName != null && displayName.trim().isNotEmpty) {
+        _nameCtrl.text = displayName.trim();
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _nameCtrl.dispose();
     _ageCtrl.dispose();
@@ -67,7 +84,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _pick({required bool selfie, required ImageSource source}) async {
     // Web HTTP (HTTPS değil) iOS Safari'de kamera (getUserMedia) engellenir.
     // Dosya seçici, iOS'ta zaten "Fotoğraf Çek" seçeneğini sunar ve HTTPS gerektirmez.
-    final effectiveSource = kIsWeb ? ImageSource.gallery : source;
+    // Selfie mobilde HER ZAMAN kameradan çekilir — galeriden eski/başka
+    // fotoğraf seçilerek doğrulama kandırılamasın.
+    final effectiveSource =
+        kIsWeb ? ImageSource.gallery : (selfie ? ImageSource.camera : source);
     try {
       final XFile? f = await _picker.pickImage(
         source: effectiveSource,
@@ -76,6 +96,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         imageQuality: 82,
       );
       if (f == null) return; // kullanıcı iptal etti
+      // Selfie'de gerçek bir yüz olmalı — ML Kit cihazda kontrol eder
+      // (web'de desteklenmez, orada atlanır).
+      if (selfie && !kIsWeb && !await ImageUtil.hasFace(f.path)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppL10n.of(context).obSelfieNoFace)),
+        );
+        return;
+      }
       final bytes = await f.readAsBytes();
       if (!mounted) return;
       setState(() => selfie ? _selfie = bytes : _photo = bytes);
@@ -87,6 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     }
   }
+
 
   Future<void> _next() async {
     if (!_canAdvance) return;
@@ -100,6 +130,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _error = null;
     });
     try {
+      final photoB64 =
+          _photo == null ? null : base64Encode(ImageUtil.shrink(_photo!));
       final profile = UserProfile(
         uid: widget.uid,
         name: _nameCtrl.text.trim(),
@@ -110,8 +142,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         verificationStatus: _selfie != null ? 'pending' : 'none',
         onboardingComplete: true,
         email: widget.email,
+        photoB64: photoB64,
       );
       await UserProfileRepository.instance.save(profile);
+      // Selfie inceleme için kilitli private alana yazılır (yalnızca sahibi
+      // ve konsoldaki admin görür). Hata kayıt akışını bozmasın.
+      if (_selfie != null) {
+        try {
+          await UserProfileRepository.instance.saveVerificationSelfie(
+            widget.uid,
+            base64Encode(ImageUtil.shrink(_selfie!, maxDim: 480)),
+          );
+        } catch (_) {/* selfie sonra tekrar istenebilir */}
+      }
       // Kaydedildikten sonra AuthGate'in profil akışı uygulamayı açar.
     } catch (e) {
       if (mounted) {

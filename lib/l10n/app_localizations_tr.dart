@@ -344,6 +344,12 @@ class AppL10nTr extends AppL10n {
   String get signOut => 'Çıkış yap';
 
   @override
+  String get continueWithGoogle => 'Google ile devam et';
+
+  @override
+  String get orDivider => 'veya';
+
+  @override
   String get errEmailRequired => 'E-postanı gir';
 
   @override
@@ -425,6 +431,33 @@ class AppL10nTr extends AppL10n {
   @override
   String get obPickFailed =>
       'Fotoğraf alınamadı — kamera/galeri iznini kontrol et.';
+
+  @override
+  String get obSelfieNoFace =>
+      'Selfie\'de yüz algılanamadı — yüzün net görünecek şekilde tekrar çek.';
+
+  @override
+  String get verifPendingTitle => 'Selfie\'n incelemede';
+
+  @override
+  String get verifPendingBody =>
+      'Güvenlik için her profili gerçek bir insan onaylıyor. Genellikle kısa sürer — onaylanınca uygulama otomatik açılır.';
+
+  @override
+  String get verifRejectedTitle => 'Selfie doğrulanamadı';
+
+  @override
+  String get verifRejectedBody =>
+      'Yüzünün net göründüğü yeni bir selfie çek — hemen tekrar incelemeye alınır.';
+
+  @override
+  String get verifRetake => 'Yeni selfie çek';
+
+  @override
+  String get notifVerifApproved => 'Profilin doğrulandı 🎉';
+
+  @override
+  String get notifVerifRejected => 'Selfie doğrulanamadı — yeniden dene';
 
   @override
   String get obSelfieTitle => 'Gerçekten sen olduğunu doğrula';

@@ -709,6 +709,18 @@ abstract class AppL10n {
   /// **'Sign out'**
   String get signOut;
 
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @orDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get orDivider;
+
   /// No description provided for @errEmailRequired.
   ///
   /// In en, this message translates to:
@@ -864,6 +876,54 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Couldn\'t get the photo — check camera/gallery permission.'**
   String get obPickFailed;
+
+  /// No description provided for @obSelfieNoFace.
+  ///
+  /// In en, this message translates to:
+  /// **'No face detected in the selfie — retake it with your face clearly visible.'**
+  String get obSelfieNoFace;
+
+  /// No description provided for @verifPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your selfie is under review'**
+  String get verifPendingTitle;
+
+  /// No description provided for @verifPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For safety, every profile is approved by a real person. It\'s usually quick — the app opens automatically once you\'re approved.'**
+  String get verifPendingBody;
+
+  /// No description provided for @verifRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t verify your selfie'**
+  String get verifRejectedTitle;
+
+  /// No description provided for @verifRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a new selfie with your face clearly visible — it goes straight back into review.'**
+  String get verifRejectedBody;
+
+  /// No description provided for @verifRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake selfie'**
+  String get verifRetake;
+
+  /// No description provided for @notifVerifApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is verified 🎉'**
+  String get notifVerifApproved;
+
+  /// No description provided for @notifVerifRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selfie couldn\'t be verified — try again'**
+  String get notifVerifRejected;
 
   /// No description provided for @obSelfieTitle.
   ///

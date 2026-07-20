@@ -62,10 +62,15 @@ class _NotifRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppL10n.of(context);
+    final isVerification = n.type == 'verification';
+    final approved = n.status == 'approved';
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => FlockDetailScreen(flockId: n.flockId),
-      )),
+      // Doğrulama bildirimi bir flock'a gitmez.
+      onTap: isVerification
+          ? null
+          : () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => FlockDetailScreen(flockId: n.flockId),
+              )),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -74,19 +79,37 @@ class _NotifRow extends StatelessWidget {
           border: Border.all(color: AppColors.borderSubtle),
         ),
         child: Row(children: [
-          FlockAvatar(name: n.actorName, size: 42),
+          if (isVerification)
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: approved ? const Color(0xFFE8F7EF) : const Color(0xFFFDECEC),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(approved ? Icons.verified : Icons.error_outline,
+                  size: 22, color: approved ? AppColors.success : AppColors.danger),
+            )
+          else
+            FlockAvatar(name: n.actorName, size: 42),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t.notifJoined(n.actorName),
+              Text(
+                  isVerification
+                      ? (approved ? t.notifVerifApproved : t.notifVerifRejected)
+                      : t.notifJoined(n.actorName),
                   style: AppText.body(14, weight: FontWeight.w700, color: AppColors.textStrong)),
               const SizedBox(height: 2),
-              Text('${n.venue} · ${_ago(t, n.createdAt)}',
+              Text(
+                  isVerification
+                      ? _ago(t, n.createdAt)
+                      : '${n.venue} · ${_ago(t, n.createdAt)}',
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: AppText.body(12.5, color: AppColors.textMuted)),
             ]),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.textFaint),
+          if (!isVerification) const Icon(Icons.chevron_right, color: AppColors.textFaint),
         ]),
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -141,7 +143,9 @@ class VerifiedBadge extends StatelessWidget {
 class FlockAvatar extends StatelessWidget {
   final String name;
   final double size;
-  const FlockAvatar({super.key, required this.name, this.size = 36});
+  /// Varsa gerçek profil fotoğrafı (base64 JPEG); yoksa baş harfler.
+  final String? photoB64;
+  const FlockAvatar({super.key, required this.name, this.size = 36, this.photoB64});
 
   static const _palette = [
     AppColors.coral400, AppColors.trust500, AppColors.sky500,
@@ -150,9 +154,15 @@ class FlockAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider? image;
+    if (photoB64 != null && photoB64!.isNotEmpty) {
+      try {
+        image = MemoryImage(base64Decode(photoB64!));
+      } catch (_) {/* bozuk veri — baş harflere düş */}
+    }
     final parts = name.trim().split(' ');
     final initials = parts.map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase();
-    final hue = _palette[name.codeUnitAt(0) % _palette.length];
+    final hue = _palette[(name.isEmpty ? 0 : name.codeUnitAt(0)) % _palette.length];
     return Container(
       width: size,
       height: size,
@@ -160,9 +170,13 @@ class FlockAvatar extends StatelessWidget {
         color: hue,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.surfaceCard, width: 2),
+        image: image == null ? null : DecorationImage(image: image, fit: BoxFit.cover),
       ),
       alignment: Alignment.center,
-      child: Text(initials, style: AppText.body(size * 0.38, weight: FontWeight.w700, color: Colors.white)),
+      child: image != null
+          ? null
+          : Text(initials,
+              style: AppText.body(size * 0.38, weight: FontWeight.w700, color: Colors.white)),
     );
   }
 }

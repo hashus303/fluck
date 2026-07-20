@@ -344,6 +344,12 @@ class AppL10nEn extends AppL10n {
   String get signOut => 'Sign out';
 
   @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get orDivider => 'or';
+
+  @override
   String get errEmailRequired => 'Enter your email';
 
   @override
@@ -424,6 +430,33 @@ class AppL10nEn extends AppL10n {
   @override
   String get obPickFailed =>
       'Couldn\'t get the photo — check camera/gallery permission.';
+
+  @override
+  String get obSelfieNoFace =>
+      'No face detected in the selfie — retake it with your face clearly visible.';
+
+  @override
+  String get verifPendingTitle => 'Your selfie is under review';
+
+  @override
+  String get verifPendingBody =>
+      'For safety, every profile is approved by a real person. It\'s usually quick — the app opens automatically once you\'re approved.';
+
+  @override
+  String get verifRejectedTitle => 'We couldn\'t verify your selfie';
+
+  @override
+  String get verifRejectedBody =>
+      'Take a new selfie with your face clearly visible — it goes straight back into review.';
+
+  @override
+  String get verifRetake => 'Retake selfie';
+
+  @override
+  String get notifVerifApproved => 'Your profile is verified 🎉';
+
+  @override
+  String get notifVerifRejected => 'Selfie couldn\'t be verified — try again';
 
   @override
   String get obSelfieTitle => 'Verify it\'s really you';
