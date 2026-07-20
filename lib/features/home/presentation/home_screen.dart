@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/models/flock.dart';
 import '../../../core/services/firebase_service.dart';
@@ -14,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../flock/data/flock_doc.dart';
 import '../../flock/data/flock_repository.dart';
+import '../../flock/data/rating_repository.dart';
 import '../../notifications/data/notification_repository.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/data/user_profile_repository.dart';
@@ -38,6 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get _live => FirebaseService.instance.isInitialized && _myUid != null;
 
+  /// Puanlama istemi bekleyen (yeni bitmiş, henüz puanlanmamış) flock'lar.
+  List<FlockDoc> _toRate = [];
+  Set<String> _ratePromptDismissed = {};
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +53,122 @@ class _HomeScreenState extends State<HomeScreen> {
         UserProfileRepository.instance.fetch(_myUid!).then((p) {
           if (mounted && p != null) setState(() => _myName = p.name);
         });
+        _loadRatePrompts();
       }
+    }
+  }
+
+  Future<void> _loadRatePrompts() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      _ratePromptDismissed =
+          (p.getStringList('rate_prompt_dismissed') ?? const []).toSet();
+      final expired = await FlockRepository.instance.recentlyExpiredMine(_myUid!);
+      final candidates = <FlockDoc>[];
+      for (final f in expired) {
+        if (_ratePromptDismissed.contains(f.id)) continue;
+        if (f.memberUids.length < 2) continue; // puanlanacak başka üye yok
+        final rated =
+            await RatingRepository.instance.ratedUidsInFlock(f.id, _myUid!);
+        final unrated =
+            f.memberUids.where((u) => u != _myUid && !rated.contains(u));
+        if (unrated.isEmpty) {
+          _dismissRatePrompt(f.id, persistOnly: true); // hepsi puanlanmış
+          continue;
+        }
+        candidates.add(f);
+      }
+      if (mounted && candidates.isNotEmpty) setState(() => _toRate = candidates);
+    } catch (_) {/* index/ağ hazır değilse istem gösterme */}
+  }
+
+  Future<void> _dismissRatePrompt(String flockId, {bool persistOnly = false}) async {
+    _ratePromptDismissed.add(flockId);
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setStringList('rate_prompt_dismissed', _ratePromptDismissed.toList());
+    } catch (_) {}
+    if (!persistOnly && mounted) {
+      setState(() => _toRate.removeWhere((f) => f.id == flockId));
+    }
+  }
+
+  /// Alt sayfa: bitmiş flock'un üyelerine yıldız ver. Yıldızlar sayfa
+  /// kapanırken topluca gönderilir (kapanana kadar fikir değiştirilebilir).
+  Future<void> _openRateSheet(FlockDoc doc) async {
+    final t = AppL10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final given = <String, int>{};
+    final others = doc.memberUids.where((u) => u != _myUid).toList();
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t.ratePromptTitle, style: AppText.display(22)),
+              const SizedBox(height: 4),
+              Text(doc.venue,
+                  style: AppText.body(14, color: AppColors.textMuted)),
+              const SizedBox(height: 16),
+              for (final uid in others) ...[
+                Row(children: [
+                  FutureBuilder<String?>(
+                    future: UserProfileRepository.instance.fetchPhotoB64(uid),
+                    builder: (_, s) => FlockAvatar(
+                        name: doc.memberNames[uid] ?? '',
+                        size: 40,
+                        photoB64: s.data),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Text(doc.memberNames[uid] ?? '',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: AppText.body(14.5, weight: FontWeight.w700))),
+                  for (var s = 1; s <= 5; s++)
+                    GestureDetector(
+                      onTap: () => setSheet(() => given[uid] = s),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                        child: Icon(
+                            s <= (given[uid] ?? 0)
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
+                            size: 26, color: AppColors.warning),
+                      ),
+                    ),
+                ]),
+                const SizedBox(height: 12),
+              ],
+              const SizedBox(height: 6),
+              FlockButton(
+                label: t.rateDone,
+                full: true,
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (given.isEmpty) return; // hiç yıldız verilmedi — istem kalsın
+    var saved = 0;
+    for (final e in given.entries) {
+      try {
+        await RatingRepository.instance.rate(
+            flockId: doc.id, raterUid: _myUid!, ratedUid: e.key, stars: e.value);
+        saved++;
+      } catch (_) {/* daha önce puanlanmış (değiştirilemez) — atla */}
+    }
+    _dismissRatePrompt(doc.id);
+    if (saved > 0) {
+      messenger.showSnackBar(SnackBar(content: Text(t.rateThanks)));
     }
   }
 
@@ -134,6 +255,48 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ),
         ),
+        // Yeni bitmiş flock için puanlama istemi
+        if (_toRate.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+                decoration: BoxDecoration(
+                  color: AppColors.coral50,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Row(children: [
+                  const Text('🌟', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(t.ratePromptTitle,
+                          style: AppText.body(14,
+                              weight: FontWeight.w800,
+                              color: AppColors.textStrong)),
+                      Text(t.ratePromptBody(_toRate.first.venue),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: AppText.body(12.5, color: AppColors.textMuted)),
+                    ]),
+                  ),
+                  TextButton(
+                    onPressed: () => _openRateSheet(_toRate.first),
+                    child: Text(t.rateAction,
+                        style: AppText.body(13.5,
+                            weight: FontWeight.w800, color: AppColors.brand)),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _dismissRatePrompt(_toRate.first.id),
+                    icon: const Icon(Icons.close,
+                        size: 18, color: AppColors.textFaint),
+                  ),
+                ]),
+              ),
+            ),
+          ),
         SliverToBoxAdapter(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,

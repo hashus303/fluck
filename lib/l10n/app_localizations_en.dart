@@ -459,6 +459,32 @@ class AppL10nEn extends AppL10n {
   String get notifVerifRejected => 'Selfie couldn\'t be verified — try again';
 
   @override
+  String get ratePromptTitle => 'How was it?';
+
+  @override
+  String ratePromptBody(String venue) {
+    return 'Your \'$venue\' flock has ended — rate the members.';
+  }
+
+  @override
+  String get rateAction => 'Rate';
+
+  @override
+  String get rateSkip => 'Not now';
+
+  @override
+  String get rateThanks => 'Thanks! Your ratings were saved.';
+
+  @override
+  String get rateAlready => 'You already rated this member.';
+
+  @override
+  String get rateDone => 'Done';
+
+  @override
+  String get statRatingReal => 'Avg rating';
+
+  @override
   String get obSelfieTitle => 'Verify it\'s really you';
 
   @override

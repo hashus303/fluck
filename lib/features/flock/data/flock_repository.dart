@@ -28,6 +28,20 @@ class FlockRepository {
             .toList());
   }
 
+  /// Kullanıcının üyesi olduğu, son [window] içinde süresi dolmuş flock'lar —
+  /// "nasıl geçti?" puanlama istemi için. (Composite index gerektirir:
+  /// memberUids CONTAINS + expiresAt ASC — firestore.indexes.json)
+  Future<List<FlockDoc>> recentlyExpiredMine(String uid,
+      {Duration window = const Duration(hours: 24)}) async {
+    final now = DateTime.now();
+    final snap = await _col
+        .where('memberUids', arrayContains: uid)
+        .where('expiresAt', isGreaterThan: Timestamp.fromDate(now.subtract(window)))
+        .where('expiresAt', isLessThan: Timestamp.fromDate(now))
+        .get();
+    return snap.docs.map((d) => FlockDoc.fromMap(d.id, d.data())).toList();
+  }
+
   /// Tek bir flock'u canlı dinler (detay ekranı için).
   Stream<FlockDoc?> watchOne(String id) => _col.doc(id).snapshots().map(
         (s) => (s.exists && s.data() != null) ? FlockDoc.fromMap(s.id, s.data()!) : null,

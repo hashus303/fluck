@@ -925,6 +925,54 @@ abstract class AppL10n {
   /// **'Selfie couldn\'t be verified — try again'**
   String get notifVerifRejected;
 
+  /// No description provided for @ratePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How was it?'**
+  String get ratePromptTitle;
+
+  /// No description provided for @ratePromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your \'{venue}\' flock has ended — rate the members.'**
+  String ratePromptBody(String venue);
+
+  /// No description provided for @rateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get rateAction;
+
+  /// No description provided for @rateSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get rateSkip;
+
+  /// No description provided for @rateThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Your ratings were saved.'**
+  String get rateThanks;
+
+  /// No description provided for @rateAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'You already rated this member.'**
+  String get rateAlready;
+
+  /// No description provided for @rateDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get rateDone;
+
+  /// No description provided for @statRatingReal.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg rating'**
+  String get statRatingReal;
+
   /// No description provided for @obSelfieTitle.
   ///
   /// In en, this message translates to:

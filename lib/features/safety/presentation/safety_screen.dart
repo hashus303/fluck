@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../flock/data/rating_repository.dart';
 import '../../profile/data/user_profile.dart';
 import '../../profile/data/user_profile_repository.dart';
 
@@ -32,20 +33,27 @@ class SafetyScreen extends StatelessWidget {
     final uid = AuthRepository.instance.currentUser!.uid;
     return StreamBuilder<UserProfile?>(
       stream: UserProfileRepository.instance.watch(uid),
-      builder: (context, snap) =>
-          _SafetyBody(profile: snap.data ?? _previewProfile),
+      builder: (context, snap) => FutureBuilder<({double avg, int count})?>(
+        future: RatingRepository.instance.received(uid),
+        builder: (context, ratingSnap) => _SafetyBody(
+          profile: snap.data ?? _previewProfile,
+          ratingAvg: ratingSnap.data?.avg,
+        ),
+      ),
     );
   }
 }
 
 class _SafetyBody extends StatelessWidget {
   final UserProfile profile;
-  const _SafetyBody({required this.profile});
+  /// Buluşma sonrası alınan yıldızların ortalaması (yoksa null).
+  final double? ratingAvg;
+  const _SafetyBody({required this.profile, this.ratingAvg});
 
   @override
   Widget build(BuildContext context) {
     final t = AppL10n.of(context);
-    final score = profile.trustScore;
+    final score = combinedTrustScore(profile.trustScore, ratingAvg);
     final features = [
       ['👥', t.featGroupTitle, t.featGroupDesc],
       ['📍', t.featLocationTitle, t.featLocationDesc],

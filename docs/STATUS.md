@@ -10,6 +10,7 @@
 - **Gerçek profil fotoğrafları** — onboarding fotoğrafı küçültülüp (`ImageUtil.shrink`, ~320px JPEG) `users/{uid}.photoB64` olarak saklanır; avatarlar (profil + flock üye listesi) gerçek fotoğraf gösterir; profilde avatara dokunarak değiştirilir
 - **Selfie doğrulaması gerçek** — ML Kit yüz algılama cihazda çalışır (yüzsüz görsel reddedilir), selfie yalnızca KAMERADAN çekilebilir, kilitli `private/verification` alanına kaydedilir, admin `tools/admin_review.js` ile inceleyip onaylar/reddeder
 - **Doğrulama kapısı** — selfie'si onaylanmayan kullanıcı uygulamaya giremez: `pending` → bekleme ekranı (onay gelince canlı açılır), `rejected` → bildirim + yeni selfie çekme ekranı → tekrar incelemeye düşer
+- **Buluşma sonrası yıldızlı puanlama (2026-07-20)** — flock bitince ana ekranda "Nasıl geçti?" istemi; üyeler birbirine 1-5 yıldız verir (`ratings` koleksiyonu: deterministik id → kişi başı tek oy, yalnız süresi dolmuş flock'un gerçek üyeleri, değiştirilemez). Trust score artık %60 profil sinyali + %40 yıldız ortalaması; profilde gerçek "Ortalama puan" kartı
 - **Onboarding + profil** — ad, yaş, ilgi alanları, foto/selfie *bayrakları*
 - **Flock yaşam döngüsü** — oluştur / katıl / ayrıl; **süre host seçimli: 30 dk / 1 sa / 2 sa** otomatik expiry (istemci hesaplı)
 - **Şansına bırak (🎲)** — ana ekranda zar butonu: filtredeki katılabilir flock'lardan rastgelesini alt sayfada gösterir; katıl / tekrar çevir
@@ -28,7 +29,6 @@
 ## ❌ Henüz yok (vizyonda var, kodda yok)
 
 - **TC kimlik + otomatik yüz eşleştirme** (OCR / face-match — inceleme şimdilik manuel)
-- **Buluşma sonrası puanlama** — flock bitince üyeler birbirine yıldız verir → trust score'a işler
 - **Telefon numarası doğrulama** (Firebase Phone Auth — Blaze planı gerekebilir)
 - **Telegram admin botu + canlı izleme paneli** — doğrulama bildirimi + tek dokunuş onay; ölçek için şart (elle onay günde ~50 kayıtta tıkanır)
 - **Partner mekan kısıtı** — mekan şu an serbest metin + haritadan herhangi bir nokta

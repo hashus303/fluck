@@ -81,6 +81,28 @@ service cloud.firestore {
                     && resource.data.hostUid == request.auth.uid;
     }
 
+    // Buluşma sonrası üye puanları. Belge kimliği deterministik
+    // (flockId_rater_rated) → aynı kişiye ikinci puan create'e takılır
+    // (update yasak). Yalnızca süresi dolmuş bir flock'un iki GERÇEK üyesi
+    // arasında, kendi adına, 1-5 tam sayı.
+    match /ratings/{ratingId} {
+      allow read: if request.auth != null
+                  && (request.auth.uid == resource.data.ratedUid
+                      || request.auth.uid == resource.data.raterUid);
+      allow create: if request.auth != null
+        && request.resource.data.raterUid == request.auth.uid
+        && request.resource.data.ratedUid != request.auth.uid
+        && request.resource.data.stars is int
+        && request.resource.data.stars >= 1
+        && request.resource.data.stars <= 5
+        && ratingId == request.resource.data.flockId + '_'
+             + request.auth.uid + '_' + request.resource.data.ratedUid
+        && request.auth.uid in flockData(request.resource.data.flockId).memberUids
+        && request.resource.data.ratedUid in flockData(request.resource.data.flockId).memberUids
+        && flockData(request.resource.data.flockId).expiresAt < request.time;
+      allow update, delete: if false;
+    }
+
     // Diğer her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;

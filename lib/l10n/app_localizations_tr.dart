@@ -460,6 +460,32 @@ class AppL10nTr extends AppL10n {
   String get notifVerifRejected => 'Selfie doğrulanamadı — yeniden dene';
 
   @override
+  String get ratePromptTitle => 'Nasıl geçti?';
+
+  @override
+  String ratePromptBody(String venue) {
+    return '\'$venue\' buluşması sona erdi — üyeleri puanla.';
+  }
+
+  @override
+  String get rateAction => 'Puanla';
+
+  @override
+  String get rateSkip => 'Şimdi değil';
+
+  @override
+  String get rateThanks => 'Teşekkürler! Puanların kaydedildi.';
+
+  @override
+  String get rateAlready => 'Bu üyeyi zaten puanladın.';
+
+  @override
+  String get rateDone => 'Bitti';
+
+  @override
+  String get statRatingReal => 'Ortalama puan';
+
+  @override
   String get obSelfieTitle => 'Gerçekten sen olduğunu doğrula';
 
   @override

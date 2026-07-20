@@ -14,6 +14,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../flock/data/dev_seeder.dart';
+import '../../flock/data/rating_repository.dart';
 import '../data/interests.dart';
 import '../data/user_profile.dart';
 import '../data/user_profile_repository.dart';
@@ -27,13 +28,17 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Future<UserProfile?>? _profileFuture;
+  Future<({double avg, int count})?>? _ratingFuture;
 
   @override
   void initState() {
     super.initState();
     if (FirebaseService.instance.isInitialized) {
       final uid = AuthRepository.instance.currentUser?.uid;
-      if (uid != null) _profileFuture = UserProfileRepository.instance.fetch(uid);
+      if (uid != null) {
+        _profileFuture = UserProfileRepository.instance.fetch(uid);
+        _ratingFuture = RatingRepository.instance.received(uid);
+      }
     }
   }
 
@@ -153,11 +158,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const SizedBox(height: 18),
-              // Gerçek güven skoru — profil sinyallerinden (Güvenlik ekranıyla aynı).
+              // Gerçek istatistikler: güven skoru (sinyal + yıldız) ve
+              // buluşmalardan alınan ortalama puan.
               if (profile != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: _StatCard(value: '${profile.trustScore}', label: t.statTrust),
+                FutureBuilder<({double avg, int count})?>(
+                  future: _ratingFuture,
+                  builder: (context, snap) {
+                    final r = snap.data;
+                    final score = combinedTrustScore(profile.trustScore, r?.avg);
+                    return Row(children: [
+                      Expanded(child: _StatCard(value: '$score', label: t.statTrust)),
+                      if (r != null) ...[
+                        const SizedBox(width: 10),
+                        Expanded(
+                            child: _StatCard(
+                                value: '★ ${r.avg.toStringAsFixed(1)}',
+                                label: t.statRatingReal)),
+                      ],
+                    ]);
+                  },
                 ),
               const SizedBox(height: 22),
               const _LanguageRow(),

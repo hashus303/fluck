@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "flocks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "memberUids", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "expiresAt", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
