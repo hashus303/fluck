@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/models/flock.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/geo.dart';
+import '../../../core/services/geocoding_service.dart';
 import '../../../core/services/location_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -268,10 +269,16 @@ class _InviteScreenState extends State<InviteScreen> {
 
     setState(() => _posting = true);
     try {
+      // Kullanıcı haritayı hiç oynatmadıysa bölge etiketi boş kalır;
+      // kartlarda boş görünmesin diye konumdan çöz (başarısızsa boş kalabilir).
+      var area = _area;
+      if (area.isEmpty) {
+        area = await GeocodingService.reverseLabel(point) ?? '';
+      }
       await FlockRepository.instance.create(
         vibeId: _vibe,
         venue: _venueCtrl.text.trim(),
-        area: _area,
+        area: area,
         hostUid: _myUid!,
         hostName: _myName.isEmpty ? 'Flocker' : _myName,
         verifiedHost: _verified,

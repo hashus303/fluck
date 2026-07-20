@@ -6,8 +6,10 @@ import '../../../core/models/flock.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/geo.dart';
 import '../../../core/services/location_controller.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/flock_widgets.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../flock/data/flock_doc.dart';
 import '../../flock/data/flock_repository.dart';
@@ -124,9 +126,32 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _locateMe(LocationController loc) async {
-    await loc.useDeviceLocation();
+    final err = await loc.useDeviceLocation();
     if (!mounted) return;
-    _mapController.move(ll.LatLng(loc.point.lat, loc.point.lng), 14);
+    if (err == LocationError.none) {
+      _mapController.move(ll.LatLng(loc.point.lat, loc.point.lng), 14);
+      return;
+    }
+    // Hata: home ekranıyla aynı mesajları göster.
+    final t = AppL10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    switch (err) {
+      case LocationError.serviceDisabled:
+        messenger.showSnackBar(SnackBar(content: Text(t.locServiceOff)));
+      case LocationError.deniedForever:
+        messenger.showSnackBar(SnackBar(
+          content: Text(t.locPermDeniedForever),
+          action: SnackBarAction(
+            label: t.locOpenSettings,
+            onPressed: () => LocationService.instance.openSettings(),
+          ),
+        ));
+      case LocationError.denied:
+        messenger.showSnackBar(SnackBar(content: Text(t.locPermDenied)));
+      case LocationError.failed:
+      case LocationError.none:
+        messenger.showSnackBar(SnackBar(content: Text(t.locGpsFailed)));
+    }
   }
 }
 

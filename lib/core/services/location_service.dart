@@ -19,14 +19,16 @@ class LocationService {
   LocationService._();
   static final LocationService instance = LocationService._();
 
-  Future<LocationResult> getCurrent() async {
+  /// [requestPermission] false ise izin penceresi açılmaz; izin yoksa
+  /// [LocationError.denied] döner (sessiz arka plan denemeleri için).
+  Future<LocationResult> getCurrent({bool requestPermission = true}) async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
         return const LocationResult(null, LocationError.serviceDisabled);
       }
 
       var perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) {
+      if (perm == LocationPermission.denied && requestPermission) {
         perm = await Geolocator.requestPermission();
       }
       if (perm == LocationPermission.deniedForever) {

@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(children: [
               const Icon(Icons.location_on_rounded, size: 18, color: AppColors.brand),
               const SizedBox(width: 5),
-              Text(loc.isGps ? t.locMyLocation : loc.label,
+              Text(loc.labelResolved ? loc.label : (loc.isGps ? t.locMyLocation : loc.label),
                   style: AppText.body(14, weight: FontWeight.w800, color: AppColors.textStrong)),
               const Spacer(),
               GestureDetector(
