@@ -1,11 +1,15 @@
 # Flock — Durum: Yapıldı / Yapılacak
 
 > Vizyon ([PRODUCT.md](PRODUCT.md)) ile kodun gerçek durumu arasındaki fark.
-> Son güncelleme: 2026-07-04.
+> Son güncelleme: 2026-07-19.
 
 ## ✅ Gerçekten yapıldı (çalışıyor)
 
 - **E-posta/şifre auth** (Firebase Auth) — giriş/kayıt/çıkış
+- **Google ile giriş** — native hesap seçici (`google_sign_in` + SHA-1); yeni kullanıcı otomatik onboarding'e düşer, adı Google'dan önceden dolar
+- **Gerçek profil fotoğrafları** — onboarding fotoğrafı küçültülüp (`ImageUtil.shrink`, ~320px JPEG) `users/{uid}.photoB64` olarak saklanır; avatarlar (profil + flock üye listesi) gerçek fotoğraf gösterir; profilde avatara dokunarak değiştirilir
+- **Selfie doğrulaması gerçek** — ML Kit yüz algılama cihazda çalışır (yüzsüz görsel reddedilir), selfie yalnızca KAMERADAN çekilebilir, kilitli `private/verification` alanına kaydedilir, admin `tools/admin_review.js` ile inceleyip onaylar/reddeder
+- **Doğrulama kapısı** — selfie'si onaylanmayan kullanıcı uygulamaya giremez: `pending` → bekleme ekranı (onay gelince canlı açılır), `rejected` → bildirim + yeni selfie çekme ekranı → tekrar incelemeye düşer
 - **Onboarding + profil** — ad, yaş, ilgi alanları, foto/selfie *bayrakları*
 - **Flock yaşam döngüsü** — oluştur / katıl / ayrıl; **süre host seçimli: 30 dk / 1 sa / 2 sa** otomatik expiry (istemci hesaplı)
 - **Şansına bırak (🎲)** — ana ekranda zar butonu: filtredeki katılabilir flock'lardan rastgelesini alt sayfada gösterir; katıl / tekrar çevir
@@ -18,12 +22,15 @@
 
 ## 🟡 Kısmen / sadece UI (backend yok)
 
-- **Kimlik doğrulama** — `verificationStatus` + `photoProvided/selfieProvided` *bayrakları* var; **TC kimlik alanı ve gerçek doğrulama akışı yok**. Güvenlik ekranındaki kimlik doğrulama kartı artık kullanıcının gerçek doğrulama durumunu yansıtıyor.
-- **Trust score** — güvenlik ekranındaki trust score artık kullanıcının profilindeki sinyallere (onboarding, kimlik doğrulama durumu, fotoğraf ve selfie sağlama durumları) göre dinamik olarak hesaplanıyor, ancak bu sinyallerin kendileri henüz gerçek bir doğrulama akışına (OCR/yüz tanıma gibi) bağlı değil.
+- **Kimlik doğrulama** — selfie akışı artık gerçek (yüz algılama + manuel admin incelemesi + kapı); **TC kimlik alanı ve otomatik yüz EŞLEŞTİRME hâlâ yok** (selfie ile profil fotoğrafını insan karşılaştırıyor).
+- **Trust score** — profil sinyallerinden (doğrulama, foto, selfie, onboarding) dinamik hesaplanıyor; **buluşma sonrası yıldız puanlarına bağlanması planlandı** (görevde).
 
 ## ❌ Henüz yok (vizyonda var, kodda yok)
 
-- **TC kimlik + selfie doğrulama** (gerçek akış / OCR / yüz eşleştirme)
+- **TC kimlik + otomatik yüz eşleştirme** (OCR / face-match — inceleme şimdilik manuel)
+- **Buluşma sonrası puanlama** — flock bitince üyeler birbirine yıldız verir → trust score'a işler
+- **Telefon numarası doğrulama** (Firebase Phone Auth — Blaze planı gerekebilir)
+- **Telegram admin botu + canlı izleme paneli** — doğrulama bildirimi + tek dokunuş onay; ölçek için şart (elle onay günde ~50 kayıtta tıkanır)
 - **Partner mekan kısıtı** — mekan şu an serbest metin + haritadan herhangi bir nokta
 - **Güvenilir kişiyle canlı konum paylaşımı**
 - **Check-in sistemi**
@@ -61,24 +68,57 @@ Yapıldı (devam):
 
 Hâlâ gerekli (kod dışı):
 - Play Console hesabı, store metinleri, ekran görüntüleri (cihazdan)
-- Data Safety formunun doldurulması (politika sayfası hazır)
+- Data Safety formunun doldurulması (politika sayfası hazır; **profil fotoğrafı + selfie toplandığı forma eklenmeli**)
 - İçerik derecelendirme anketi (18+ sosyal buluşma), internal testing track'te gerçek cihaz testi
-- Firestore rules'un canlıya deploy edilmesi (`firebase login` + `firebase deploy --only firestore:rules`) + App Check (Play Integrity) + Play imza SHA'sının Firebase'e eklenmesi
+- ~~Firestore rules'un canlıya deploy edilmesi~~ ✅ **Deploy edildi (2026-07-19)** — Firebase CLI kuruldu, kurallar canlıda; sonraki değişikliklerde `firebase deploy --only firestore:rules`
+- ~~Google sağlayıcısı~~ ✅ **Açıldı (2026-07-19)** — support email + SHA-1 (upload key) eklendi, `google-services.json` güncellendi
+- App Check (Play Integrity) + Play'e çıkınca **Play imza SHA'sının** Firebase'e eklenmesi
 - PR'lar merge olunca GitHub Pages kaynağını `main`'e çevirmek
 
 ## 🔴 Bilinen riskler / hatalar (kod incelemesinden)
 
-1. **`silent` parametresi ölü** — `location_controller.dart:42`. `load()` "sessiz GPS" beklerken ilk açılışta izin penceresi fırlar.
-2. **`_label` hiç güncellenmiyor** — `location_controller.dart:11`. GPS'te bile "İstanbul". `geocoding_service` ile güncellenebilir.
-3. **Mesafe filtresi tamamen istemcide** — `flock_repository.dart:19` tüm aktif flock'ları çeker. Ölçeklenmez → ileride geohash/GeoFirestore.
-4. **Firebase anahtarları repoda** — sır değil ama güvenlik tamamen kurallara bağlı → **App Check** önerilir.
+1. **Mesafe filtresi tamamen istemcide** — `flock_repository.dart:19` tüm aktif flock'ları çeker. Ölçeklenmez → ileride geohash/GeoFirestore.
+2. **Firebase anahtarları repoda** — sır değil ama güvenlik tamamen kurallara bağlı → **App Check** önerilir.
+
+## 🚀 2026-07-19 gelişmeleri (yayın sprinti)
+
+- **Google ile giriş eklendi** — önce `signInWithProvider` (tarayıcı) denendi, Chrome'un bölümlenmiş depolaması "missing initial state" hatası verdi → **native `google_sign_in`'e geçildi** (SHA-1 + web client id). Cihazda test edildi, çalışıyor.
+- **Profil placeholder temizliği** — sahte istatistikler (90/23/4.9), sahte geçmiş flock'lar ve "Jordan Vale" kaldırıldı; gerçek trust score kartı; avatardaki ✓ yalnızca doğrulanmış hesapta.
+- **Fotoğraf altyapısı** — foto/selfie artık gerçekten kaydediliyor (Firestore base64; Storage/Blaze gerekmedi). Avatarlar gerçek fotoğraf gösteriyor; profilden fotoğraf değiştirilebiliyor.
+- **Selfie doğrulama gerçek oldu** — ML Kit yüz algılama (klavye fotoğrafı vakası kapandı), kamera-zorunlu selfie, kilitli `private/verification`, `tools/admin_review.js` ile inceleme/onay/red + kullanıcıya bildirim.
+- **Doğrulama kapısı** — pending/rejected kullanıcı uygulamaya giremiyor; redde yeni selfie akışı. (Geliştirici hesabı muaf.)
+- **Kurallar sertleştirilip CANLIYA deploy edildi** — istemci kendini `verified` yapamaz; `private/` yalnızca sahibine; eski açık kurallar proddan kalktı.
+- **Auth ekranı logosu** gerçek uygulama ikonuyla değiştirildi.
+- **Not:** ML Kit nedeniyle APK ~85MB oldu — Play'e AAB yüklendiği için kullanıcıya inen boyut çok daha küçük olur.
+- **Ortam:** Android SDK `C:\Asdk`'ya taşınmıştı; `local.properties` ve `build_release.bat` güncellendi. Node.js LTS + Firebase CLI (npm) kuruldu.
+
+## 📈 Ölçek eşikleri (2026-07-19 analizi)
+
+| Eşik | Ne patlar | Çare |
+|---|---|---|
+| ~100-300 DAU | Spark planı günlük 50K okuma kotası → feed boş kalır | Blaze planına geçiş |
+| ~50-100 kayıt/gün | Elle selfie onayı tıkanır | Telegram admin botu |
+| ~1-5K kullanıcı | OSM tile/Nominatim politika engeli → harita beyaz | Ücretli tile sağlayıcı (MapTiler/Stadia) |
+| ~5-10K DAU | "Herkes tüm flock'ları dinler" modeli (maliyet + jank) | Geohash'li yakınlık sorgusu |
+
+Kök neden: `watchActive()` tüm aktif flock'ları her istemciye indirir (mesafe filtresi istemcide). Auth/kurallar/transaction'lar ölçeklenebilir durumda.
+
+## 🟢 Yayın öncesi bug temizliği (2026-07-19)
+
+- **`silent` parametresi artık gerçek** — ilk açılışta izin penceresi fırlamaz; GPS yalnızca izin zaten verilmişse sessizce alınır, izin sorusu kullanıcı "GPS kullan"a basınca sorulur (`location_service.dart` `requestPermission` parametresi).
+- **Konum etiketi GPS'e göre güncelleniyor** — başarılı GPS sonrası Nominatim reverse-geocode ile "Moda, Kadıköy" gibi gerçek bölge etiketi çözülür, kalıcı saklanır ve ana ekranda gösterilir (`LocationController._resolveLabel`).
+- **Flock detay haritası düzeltildi** — yanlış User-Agent (`com.fluck.app` → `com.hashus303.fluck`), eksik `retinaMode` (hi-DPI netliği) ve eksik zorunlu OSM atıfı (`OsmAttribution`) eklendi.
+- **Harita ekranında sessiz GPS hatası giderildi** — "konumumu bul" butonu başarısız olunca artık ana ekranla aynı hata mesajları gösterilir; harita hatada eski konuma zıplamaz.
+- **Davet oluşturmada boş bölge etiketi** — kullanıcı haritayı hiç oynatmadıysa bölge, yayınlama sırasında konumdan reverse-geocode ile doldurulur.
 
 ## Öneri sırası (yapılırsa)
 
-1. Konum/adres etiketinin (`_label`) GPS konumuna göre güncellenmesini sağlama
-2. Check-in + güvenilir kişiyle konum paylaşımı (güvenlik MVP'si)
-3. Cloud Functions (expiry temizliği) + FCM push
-4. AI moderasyon + partner mekan altyapısı
+1. Telegram admin botu (doğrulama onayını otomatize et — ölçek darboğazı #1)
+2. Buluşma sonrası yıldızlı puanlama → dinamik trust score
+3. Telefon numarası doğrulama (Phone Auth; Blaze kontrolü)
+4. Check-in + güvenilir kişiyle konum paylaşımı (güvenlik MVP'si)
+5. Cloud Functions (expiry temizliği) + FCM push
+6. Geohash sorgu + ücretli tile sağlayıcı (ölçek eşiklerine göre)
 
 ---
 İlgili: [PRODUCT.md](PRODUCT.md) · [ARCHITECTURE.md](ARCHITECTURE.md)
