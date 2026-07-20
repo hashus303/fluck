@@ -61,3 +61,6 @@ testsprite_tests/
 
 # Yerel admin inceleme çıktısı (kişisel fotoğraflar içerir)
 tools/review.html
+
+# Telegram bot yapılandırması (bot token içerir — asla commit'leme)
+tools/bot_config.json
