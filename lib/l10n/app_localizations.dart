@@ -883,6 +883,36 @@ abstract class AppL10n {
   /// **'No face detected in the selfie — retake it with your face clearly visible.'**
   String get obSelfieNoFace;
 
+  /// No description provided for @obSelfieChallengeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'For verification:'**
+  String get obSelfieChallengeLabel;
+
+  /// No description provided for @obSelfieChSmile.
+  ///
+  /// In en, this message translates to:
+  /// **'smile 😊'**
+  String get obSelfieChSmile;
+
+  /// No description provided for @obSelfieChTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'turn your head slightly to the side ↩️'**
+  String get obSelfieChTurn;
+
+  /// No description provided for @obSelfieChTilt.
+  ///
+  /// In en, this message translates to:
+  /// **'tilt your head slightly 🙂↕️'**
+  String get obSelfieChTilt;
+
+  /// No description provided for @obSelfieWrongPose.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t see the requested move. Try again: {pose}'**
+  String obSelfieWrongPose(String pose);
+
   /// No description provided for @verifPendingTitle.
   ///
   /// In en, this message translates to:

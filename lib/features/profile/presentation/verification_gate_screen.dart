@@ -10,6 +10,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
+import '../data/selfie_challenge_label.dart';
 import '../data/user_profile.dart';
 import '../data/user_profile_repository.dart';
 
@@ -26,6 +27,7 @@ class VerificationGateScreen extends StatefulWidget {
 
 class _VerificationGateScreenState extends State<VerificationGateScreen> {
   bool _busy = false;
+  final SelfieChallenge _challenge = ImageUtil.randomChallenge();
 
   Future<void> _retakeSelfie() async {
     final t = AppL10n.of(context);
@@ -38,9 +40,17 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
         imageQuality: 82,
       );
       if (f == null) return; // iptal
-      if (!kIsWeb && !await ImageUtil.hasFace(f.path)) {
-        messenger.showSnackBar(SnackBar(content: Text(t.obSelfieNoFace)));
-        return;
+      if (!kIsWeb) {
+        final check = await ImageUtil.checkSelfie(f.path, _challenge);
+        if (!mounted) return;
+        if (check != SelfieCheck.ok) {
+          messenger.showSnackBar(SnackBar(
+            content: Text(check == SelfieCheck.noFace
+                ? t.obSelfieNoFace
+                : t.obSelfieWrongPose(selfieChallengeLabel(t, _challenge))),
+          ));
+          return;
+        }
       }
       setState(() => _busy = true);
       final b64 = base64Encode(ImageUtil.shrink(await f.readAsBytes(), maxDim: 480));
@@ -82,7 +92,28 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
               Text(rejected ? t.verifRejectedBody : t.verifPendingBody,
                   textAlign: TextAlign.center,
                   style: AppText.body(14.5, color: AppColors.textMuted)),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
+              if (rejected) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.coral50,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Column(children: [
+                    Text(t.obSelfieChallengeLabel,
+                        style: AppText.body(12,
+                            weight: FontWeight.w700, color: AppColors.textMuted)),
+                    const SizedBox(height: 2),
+                    Text(selfieChallengeLabel(t, _challenge),
+                        textAlign: TextAlign.center,
+                        style: AppText.body(16,
+                            weight: FontWeight.w800, color: AppColors.brandHover)),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+              ],
               if (rejected)
                 _busy
                     ? const CircularProgressIndicator(color: AppColors.brand)

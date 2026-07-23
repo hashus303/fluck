@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/image_util.dart';
+import '../data/selfie_challenge_label.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
@@ -43,6 +44,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   /// Geliştirici hesabı — foto/selfie adımları zorunlu değil (test kolaylığı).
   bool get _isDev => widget.email == 'haskartal303@gmail.com';
+
+  /// Bu oturumun rastgele selfie pozu — önceden tahmin edilemesin diye
+  /// çalışma anında seçilir; kayıtlı/başka fotoğraf pozu tutamaz.
+  final SelfieChallenge _selfieChallenge = ImageUtil.randomChallenge();
 
   @override
   void initState() {
@@ -96,14 +101,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         imageQuality: 82,
       );
       if (f == null) return; // kullanıcı iptal etti
-      // Selfie'de gerçek bir yüz olmalı — ML Kit cihazda kontrol eder
-      // (web'de desteklenmez, orada atlanır).
-      if (selfie && !kIsWeb && !await ImageUtil.hasFace(f.path)) {
+      // Selfie'de gerçek bir yüz olmalı VE istenen poz tutulmalı — ML Kit
+      // cihazda kontrol eder (web'de desteklenmez, orada atlanır).
+      if (selfie && !kIsWeb) {
+        final check = await ImageUtil.checkSelfie(f.path, _selfieChallenge);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppL10n.of(context).obSelfieNoFace)),
-        );
-        return;
+        if (check != SelfieCheck.ok) {
+          final t = AppL10n.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(check == SelfieCheck.noFace
+                ? t.obSelfieNoFace
+                : t.obSelfieWrongPose(selfieChallengeLabel(t, _selfieChallenge))),
+          ));
+          return;
+        }
       }
       final bytes = await f.readAsBytes();
       if (!mounted) return;
@@ -326,6 +337,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           title: t.obSelfieTitle,
           subtitle: t.obSelfieSubtitle,
           child: Column(children: [
+            // Rastgele canlılık pozu — her açılışta farklı.
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.coral50,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(t.obSelfieChallengeLabel,
+                    style: AppText.body(12, weight: FontWeight.w700, color: AppColors.textMuted)),
+                const SizedBox(height: 2),
+                Text(selfieChallengeLabel(t, _selfieChallenge),
+                    style: AppText.body(16, weight: FontWeight.w800, color: AppColors.brandHover)),
+              ]),
+            ),
+            const SizedBox(height: 16),
             _PhotoPicker(
               bytes: _selfie,
               shape: BoxShape.circle,

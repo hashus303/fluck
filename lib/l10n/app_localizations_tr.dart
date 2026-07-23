@@ -437,6 +437,23 @@ class AppL10nTr extends AppL10n {
       'Selfie\'de yüz algılanamadı — yüzün net görünecek şekilde tekrar çek.';
 
   @override
+  String get obSelfieChallengeLabel => 'Doğrulama için:';
+
+  @override
+  String get obSelfieChSmile => 'gülümse 😊';
+
+  @override
+  String get obSelfieChTurn => 'başını hafifçe yana çevir ↩️';
+
+  @override
+  String get obSelfieChTilt => 'başını hafifçe yana eğ 🙂↕️';
+
+  @override
+  String obSelfieWrongPose(String pose) {
+    return 'İstenen hareketi göremedik. Tekrar dene: $pose';
+  }
+
+  @override
   String get verifPendingTitle => 'Selfie\'n incelemede';
 
   @override

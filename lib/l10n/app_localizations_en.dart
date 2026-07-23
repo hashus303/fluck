@@ -436,6 +436,23 @@ class AppL10nEn extends AppL10n {
       'No face detected in the selfie — retake it with your face clearly visible.';
 
   @override
+  String get obSelfieChallengeLabel => 'For verification:';
+
+  @override
+  String get obSelfieChSmile => 'smile 😊';
+
+  @override
+  String get obSelfieChTurn => 'turn your head slightly to the side ↩️';
+
+  @override
+  String get obSelfieChTilt => 'tilt your head slightly 🙂↕️';
+
+  @override
+  String obSelfieWrongPose(String pose) {
+    return 'We couldn\'t see the requested move. Try again: $pose';
+  }
+
+  @override
   String get verifPendingTitle => 'Your selfie is under review';
 
   @override
