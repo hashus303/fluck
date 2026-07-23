@@ -7,6 +7,7 @@ import '../../../core/services/firebase_service.dart';
 import '../../../core/services/geo.dart';
 import '../../../core/services/location_controller.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/services/map_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
@@ -72,8 +73,8 @@ class _MapScreenState extends State<MapScreen> {
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.hashus303.fluck',
+              urlTemplate: MapConfig.urlTemplate(retina: retina),
+              userAgentPackageName: MapConfig.userAgentPackageName,
               retinaMode: retina,
             ),
             MarkerLayer(markers: [

@@ -30,6 +30,17 @@ echo   Dizin: %CD%
 echo ===========================================================
 echo(
 
+REM --- MapTiler anahtari (gitignore'daki maptiler.key dosyasindan) ---
+REM  Dosya yoksa harita ham OpenStreetMap'e duser (uygulama yine calisir).
+set "MAP_DEFINE="
+if exist "%~dp0maptiler.key" (
+  set /p MAPTILER_KEY=<"%~dp0maptiler.key"
+  set "MAP_DEFINE=--dart-define=MAPTILER_KEY=!MAPTILER_KEY!"
+  echo   MapTiler anahtari bulundu, markali harita ile derlenecek.
+) else (
+  echo   maptiler.key yok - harita OSM ile derlenecek.
+)
+
 REM --- Bagimliliklar ---
 echo [1/3] flutter pub get...
 call "%FLUTTER%" pub get
@@ -46,7 +57,7 @@ set AAB_OK=0
 for /L %%i in (1,1,3) do (
   if !AAB_OK!==0 (
     echo   -- deneme %%i/3 --
-    call "%FLUTTER%" build appbundle --release
+    call "%FLUTTER%" build appbundle --release !MAP_DEFINE!
     if !errorlevel!==0 ( set AAB_OK=1 ) else ( echo   deneme %%i basarisiz, tekrar deneniyor... )
   )
 )
@@ -63,7 +74,7 @@ set APK_OK=0
 for /L %%i in (1,1,3) do (
   if !APK_OK!==0 (
     echo   -- deneme %%i/3 --
-    call "%FLUTTER%" build apk --release
+    call "%FLUTTER%" build apk --release !MAP_DEFINE!
     if !errorlevel!==0 ( set APK_OK=1 ) else ( echo   deneme %%i basarisiz, tekrar deneniyor... )
   )
 )

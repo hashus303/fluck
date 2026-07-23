@@ -6,6 +6,7 @@ import '../../../core/models/flock.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/geo.dart';
 import '../../../core/services/location_controller.dart';
+import '../../../core/services/map_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
@@ -144,8 +145,8 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.hashus303.fluck',
+                          urlTemplate: MapConfig.urlTemplate(retina: RetinaMode.isHighDensity(context)),
+                          userAgentPackageName: MapConfig.userAgentPackageName,
                           retinaMode: RetinaMode.isHighDensity(context),
                         ),
                         MarkerLayer(markers: [

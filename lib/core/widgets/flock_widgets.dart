@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../models/flock.dart';
+import '../services/map_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
@@ -78,10 +79,10 @@ class OsmAttribution extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text('© OpenStreetMap contributors',
+        child: Text(MapConfig.attribution,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+            style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
       ),
     );
   }

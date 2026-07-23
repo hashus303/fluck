@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart' as ll;
 
 import '../services/geo.dart';
 import '../services/geocoding_service.dart';
+import '../services/map_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -172,8 +173,8 @@ class _LocationPickerState extends State<LocationPicker> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.hashus303.fluck',
+                  urlTemplate: MapConfig.urlTemplate(retina: RetinaMode.isHighDensity(context)),
+                  userAgentPackageName: MapConfig.userAgentPackageName,
                   retinaMode: RetinaMode.isHighDensity(context),
                 ),
                 const OsmAttribution(),

@@ -64,3 +64,6 @@ tools/review.html
 
 # Telegram bot yapılandırması (bot token içerir — asla commit'leme)
 tools/bot_config.json
+
+# MapTiler API anahtarı (public repoya girmez)
+maptiler.key
