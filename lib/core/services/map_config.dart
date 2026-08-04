@@ -8,11 +8,12 @@ class MapConfig {
 
   static const _key = String.fromEnvironment('MAPTILER_KEY');
 
-  /// MapTiler stil kimliği. Başlangıçta sade/aydınlık 'dataviz'; MapTiler
-  /// Studio'da coral markalı özel stil yapılıp buradaki id değiştirilebilir.
+  /// MapTiler stil kimliği. Sade/aydınlık 'dataviz-light' taban; üstüne
+  /// uygulamada hafif coral tonu bindiriliyor (bkz. themedTileBuilder).
+  /// MapTiler Studio'da tam markalı özel stil yapılıp buradaki id değişebilir.
   static const style = String.fromEnvironment(
     'MAPTILER_STYLE',
-    defaultValue: 'dataviz',
+    defaultValue: 'dataviz-light',
   );
 
   static bool get usingMapTiler => _key.isNotEmpty;

@@ -10,6 +10,7 @@ import '../../../core/services/map_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
+import '../../../core/widgets/map_tiles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../profile/data/user_profile_repository.dart';
@@ -148,6 +149,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                           urlTemplate: MapConfig.urlTemplate(retina: RetinaMode.isHighDensity(context)),
                           userAgentPackageName: MapConfig.userAgentPackageName,
                           retinaMode: RetinaMode.isHighDensity(context),
+                          tileBuilder: themedTileBuilder,
                         ),
                         MarkerLayer(markers: [
                           Marker(

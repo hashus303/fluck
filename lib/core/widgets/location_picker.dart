@@ -11,6 +11,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import 'flock_widgets.dart';
+import 'map_tiles.dart';
 
 /// Harita üzerinde konum seç — OpenStreetMap (anahtarsız).
 /// Üstte yer arama, altta merkez-pin'li sürüklenebilir harita.
@@ -176,6 +177,7 @@ class _LocationPickerState extends State<LocationPicker> {
                   urlTemplate: MapConfig.urlTemplate(retina: RetinaMode.isHighDensity(context)),
                   userAgentPackageName: MapConfig.userAgentPackageName,
                   retinaMode: RetinaMode.isHighDensity(context),
+                  tileBuilder: themedTileBuilder,
                 ),
                 const OsmAttribution(),
               ],

@@ -10,6 +10,7 @@ import '../../../core/services/location_service.dart';
 import '../../../core/services/map_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/flock_widgets.dart';
+import '../../../core/widgets/map_tiles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../flock/data/flock_doc.dart';
@@ -76,6 +77,7 @@ class _MapScreenState extends State<MapScreen> {
               urlTemplate: MapConfig.urlTemplate(retina: retina),
               userAgentPackageName: MapConfig.userAgentPackageName,
               retinaMode: retina,
+              tileBuilder: themedTileBuilder,
             ),
             MarkerLayer(markers: [
               // Kullanıcının konumu
