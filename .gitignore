@@ -67,3 +67,7 @@ tools/bot_config.json
 
 # MapTiler API anahtarı (public repoya girmez)
 maptiler.key
+
+# Firebase service account key (sunucu botu — ASLA commit'leme)
+tools/sa-key.json
+tools/node_modules/

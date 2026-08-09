@@ -1,0 +1,10 @@
+{
+  "name": "flock-admin-tools",
+  "description": "Flock admin araçları — Telegram botu (sunucuda service account ile) + yerel inceleme",
+  "private": true,
+  "main": "admin_bot.js",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "google-auth-library": "^9.14.0"
+  }
+}

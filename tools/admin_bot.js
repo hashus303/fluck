@@ -33,7 +33,14 @@ let cfg = {};
 try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); } catch (_) {}
 const saveCfg = () => fs.writeFileSync(CFG_PATH, JSON.stringify(cfg, null, 2));
 
-// ---------- Firebase (CLI oturumu üzerinden) ----------
+// ---------- Firebase erişim jetonu ----------
+// İki yol: (1) SERVICE ACCOUNT KEY — sunucuda (EC2/VDS). GOOGLE_APPLICATION_
+// CREDENTIALS ortam değişkeni ya da tools/sa-key.json dosyası varsa kullanılır.
+// (2) CLI OTURUMU — yerel geliştirmede (`firebase login`). Anahtar yoksa buna düşer.
+const SA_KEY = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+  (fs.existsSync(path.join(__dirname, 'sa-key.json')) ? path.join(__dirname, 'sa-key.json') : null);
+
+let _gauth = null;
 function refreshTokenFromConfigstore() {
   const p = path.join(os.homedir(), '.config', 'configstore', 'firebase-tools.json');
   const j = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -45,6 +52,21 @@ function refreshTokenFromConfigstore() {
 let fbTok = null, fbTokExp = 0;
 async function fbToken() {
   if (fbTok && Date.now() < fbTokExp) return fbTok;
+  if (SA_KEY) {
+    // Service account (sunucu) — google-auth-library ile Firestore jetonu.
+    if (!_gauth) {
+      const { GoogleAuth } = require('google-auth-library');
+      _gauth = new GoogleAuth({
+        keyFile: SA_KEY,
+        scopes: ['https://www.googleapis.com/auth/datastore'],
+      });
+    }
+    const client = await _gauth.getClient();
+    const t = await client.getAccessToken();
+    fbTok = t.token;
+    fbTokExp = Date.now() + 55 * 60 * 1000; // ~1 saat, erken yenile
+    return fbTok;
+  }
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -276,10 +298,13 @@ async function pollTelegramOnce() {
 
 // ---------- başlat ----------
 (async () => {
+  // Sunucuda (EC2) yapılandırma ortam değişkeninden gelir; yerelde config'ten.
+  if (process.env.TELEGRAM_BOT_TOKEN) cfg.token = process.env.TELEGRAM_BOT_TOKEN;
+  if (process.env.ADMIN_CHAT_ID) cfg.adminChatId = Number(process.env.ADMIN_CHAT_ID);
   const argToken = process.argv[2];
   if (argToken) { cfg.token = argToken; saveCfg(); }
   if (!cfg.token) {
-    console.error('Bot token gerekli. @BotFather ile bot oluştur, sonra:\n  node admin_bot.js <BOT_TOKEN>');
+    console.error('Bot token gerekli. Ortam: TELEGRAM_BOT_TOKEN, ya da: node admin_bot.js <BOT_TOKEN>');
     process.exit(1);
   }
   if (!cfg.adminChatId) {
