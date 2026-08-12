@@ -194,6 +194,29 @@ function archivedPhotos(uid) {
 
 const fileToB64 = (p) => fs.readFileSync(p).toString('base64');
 
+// Tüm kullanıcılar (az sayıda — arama/listeleme için).
+async function allUsers() {
+  const r = await fb(`${BASE}/users?pageSize=200`);
+  return (r.documents || []).map((d) => ({ id: d.name.split('/').pop(), f: d.fields || {} }));
+}
+
+// Bir kullanıcının profil + selfie fotoğraflarını yollar (önce disk arşivi,
+// yoksa Firestore'dan canlı). En az bir foto gönderildiyse true.
+async function sendUserPhotos(uid, name) {
+  const label = name || uid;
+  const arch = archivedPhotos(uid);
+  let sent = false;
+  if (arch.profile) { await tgPhoto(fileToB64(arch.profile), `Profil — ${label}`); sent = true; }
+  else {
+    try { const u = await fb(`${BASE}/users/${uid}`); const p = val((u.fields || {}).photoB64); if (p) { await tgPhoto(p, `Profil — ${label}`); sent = true; } } catch (_) {}
+  }
+  if (arch.selfie) { await tgPhoto(fileToB64(arch.selfie), `Selfie — ${label}`); sent = true; }
+  else {
+    try { const v = await fb(`${BASE}/users/${uid}/private/verification`); const s = val((v.fields || {}).selfieB64); if (s) { await tgPhoto(s, `Selfie — ${label}`); sent = true; } } catch (_) {}
+  }
+  return sent;
+}
+
 // ---------- Firestore izleyicisi ----------
 cfg.seenVerif = cfg.seenVerif || [];
 cfg.seenReports = cfg.seenReports || [];
@@ -312,30 +335,38 @@ async function pollTelegramOnce() {
       if (text === '/durum') {
         try { await tg('sendMessage', { chat_id: chatId, text: await statusSummary() }); }
         catch (e) { await tg('sendMessage', { chat_id: chatId, text: `Hata: ${e.message}` }); }
-      } else if (text.startsWith('/foto')) {
-        // /foto <uid> → o kişinin arşivlenmiş selfie + profil fotoğrafları.
-        const uid = text.slice(5).trim();
-        if (!uid) { await tg('sendMessage', { chat_id: chatId, text: 'Kullanım: /foto <uid>' }); continue; }
+      } else if (text === '/liste') {
+        // Kullanıcıları uid'leriyle listeler (fotoğraf/işlem için referans).
         try {
-          const arch = archivedPhotos(uid);
-          if (arch.selfie || arch.profile) {
-            if (arch.profile) await tgPhoto(fileToB64(arch.profile), `Profil — ${uid}`);
-            if (arch.selfie) await tgPhoto(fileToB64(arch.selfie), `Selfie — ${uid}`);
-          } else {
-            // Arşivde yok (eski kayıt) — Firestore'dan canlı çek.
-            let sent = false;
-            try {
-              const u = await fb(`${BASE}/users/${uid}`);
-              const p = val((u.fields || {}).photoB64);
-              if (p) { await tgPhoto(p, `Profil — ${uid}`); sent = true; }
-            } catch (_) {}
-            try {
-              const v = await fb(`${BASE}/users/${uid}/private/verification`);
-              const s = val((v.fields || {}).selfieB64);
-              if (s) { await tgPhoto(s, `Selfie — ${uid}`); sent = true; }
-            } catch (_) {}
-            if (!sent) await tg('sendMessage', { chat_id: chatId, text: 'Bu uid için fotoğraf bulunamadı.' });
+          const users = await allUsers();
+          if (!users.length) { await tg('sendMessage', { chat_id: chatId, text: 'Kullanıcı yok.' }); continue; }
+          const lines = users.slice(0, 60).map((u) =>
+            `• ${val(u.f.name) || '(adsız)'} · ${val(u.f.verificationStatus) || 'none'}\n  ${val(u.f.email) || ''}\n  ${u.id}`);
+          await tg('sendMessage', { chat_id: chatId, text: `👥 ${users.length} kullanıcı:\n\n` + lines.join('\n') });
+        } catch (e) {
+          await tg('sendMessage', { chat_id: chatId, text: `Hata: ${e.message}` });
+        }
+      } else if (text.startsWith('/foto')) {
+        // /foto <isim | e-posta | uid> → eşleşen kişinin fotoğrafları.
+        const q = text.slice(5).trim().toLowerCase();
+        if (!q) { await tg('sendMessage', { chat_id: chatId, text: 'Kullanım: /foto <isim, e-posta ya da uid>' }); continue; }
+        try {
+          const users = await allUsers();
+          let matches = users.filter((u) => u.id.toLowerCase() === q);
+          if (!matches.length) {
+            matches = users.filter((u) =>
+              (val(u.f.name) || '').toLowerCase().includes(q) ||
+              (val(u.f.email) || '').toLowerCase().includes(q));
           }
+          if (!matches.length) {
+            await tg('sendMessage', { chat_id: chatId, text: 'Eşleşme yok. /liste ile kullanıcılara bak.' });
+            continue;
+          }
+          for (const m of matches.slice(0, 3)) {
+            const ok = await sendUserPhotos(m.id, val(m.f.name));
+            if (!ok) await tg('sendMessage', { chat_id: chatId, text: `${val(m.f.name) || m.id}: fotoğraf yok.` });
+          }
+          if (matches.length > 3) await tg('sendMessage', { chat_id: chatId, text: `(${matches.length} eşleşme, ilk 3 gösterildi — daha net ara)` });
         } catch (e) {
           await tg('sendMessage', { chat_id: chatId, text: `Hata: ${e.message}` });
         }
