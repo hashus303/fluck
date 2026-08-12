@@ -160,6 +160,40 @@ const REASON_TR = {
   no_show: 'Gelmedi', safety: 'Güvenlik endişesi', other: 'Diğer',
 };
 
+// ---------- Doğrulama fotoğrafı arşivi (sunucu diski) ----------
+// Selfie'ler ve profil fotoğrafları burada kalıcı tutulur; Firestore'a ek
+// olarak SENİN sunucunda da durur, /foto ile geçmişe bakılabilir.
+const VERIF_DIR = path.join(__dirname, '..', 'verifications');
+
+function saveB64(file, b64) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, Buffer.from(b64, 'base64'));
+}
+
+function archiveVerification(uid, selfieB64, profileB64) {
+  try {
+    const dir = path.join(VERIF_DIR, uid);
+    if (selfieB64) saveB64(path.join(dir, `selfie-${Date.now()}.jpg`), selfieB64);
+    if (profileB64) saveB64(path.join(dir, 'profile.jpg'), profileB64);
+  } catch (e) {
+    console.error('[arşiv]', e.message);
+  }
+}
+
+/// uid klasöründeki en yeni selfie ve profil dosya yolları (yoksa null).
+function archivedPhotos(uid) {
+  const dir = path.join(VERIF_DIR, uid);
+  if (!fs.existsSync(dir)) return {};
+  const files = fs.readdirSync(dir);
+  const selfies = files.filter((f) => f.startsWith('selfie-')).sort();
+  return {
+    selfie: selfies.length ? path.join(dir, selfies[selfies.length - 1]) : null,
+    profile: files.includes('profile.jpg') ? path.join(dir, 'profile.jpg') : null,
+  };
+}
+
+const fileToB64 = (p) => fs.readFileSync(p).toString('base64');
+
 // ---------- Firestore izleyicisi ----------
 cfg.seenVerif = cfg.seenVerif || [];
 cfg.seenReports = cfg.seenReports || [];
@@ -186,6 +220,8 @@ async function checkPendingVerifications() {
       { text: '❌ Reddet', callback_data: `reject:${u.id}` },
     ]] };
     const photo = val(u.f.photoB64);
+    // Fotoğrafları sunucu diskine arşivle (Firestore'a EK olarak, kalıcı).
+    archiveVerification(u.id, selfie, photo);
     if (photo) await tgPhoto(photo, `Profil fotoğrafı — ${val(u.f.name) || ''}`);
     if (selfie) await tgPhoto(selfie, caption, keyboard);
     else await tg('sendMessage', { chat_id: cfg.adminChatId, text: caption + '\n(selfie yüklenmemiş)', reply_markup: keyboard });
@@ -276,6 +312,33 @@ async function pollTelegramOnce() {
       if (text === '/durum') {
         try { await tg('sendMessage', { chat_id: chatId, text: await statusSummary() }); }
         catch (e) { await tg('sendMessage', { chat_id: chatId, text: `Hata: ${e.message}` }); }
+      } else if (text.startsWith('/foto')) {
+        // /foto <uid> → o kişinin arşivlenmiş selfie + profil fotoğrafları.
+        const uid = text.slice(5).trim();
+        if (!uid) { await tg('sendMessage', { chat_id: chatId, text: 'Kullanım: /foto <uid>' }); continue; }
+        try {
+          const arch = archivedPhotos(uid);
+          if (arch.selfie || arch.profile) {
+            if (arch.profile) await tgPhoto(fileToB64(arch.profile), `Profil — ${uid}`);
+            if (arch.selfie) await tgPhoto(fileToB64(arch.selfie), `Selfie — ${uid}`);
+          } else {
+            // Arşivde yok (eski kayıt) — Firestore'dan canlı çek.
+            let sent = false;
+            try {
+              const u = await fb(`${BASE}/users/${uid}`);
+              const p = val((u.fields || {}).photoB64);
+              if (p) { await tgPhoto(p, `Profil — ${uid}`); sent = true; }
+            } catch (_) {}
+            try {
+              const v = await fb(`${BASE}/users/${uid}/private/verification`);
+              const s = val((v.fields || {}).selfieB64);
+              if (s) { await tgPhoto(s, `Selfie — ${uid}`); sent = true; }
+            } catch (_) {}
+            if (!sent) await tg('sendMessage', { chat_id: chatId, text: 'Bu uid için fotoğraf bulunamadı.' });
+          }
+        } catch (e) {
+          await tg('sendMessage', { chat_id: chatId, text: `Hata: ${e.message}` });
+        }
       }
     }
     if (up.callback_query) {

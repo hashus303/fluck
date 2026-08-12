@@ -71,3 +71,6 @@ maptiler.key
 # Firebase service account key (sunucu botu — ASLA commit'leme)
 tools/sa-key.json
 tools/node_modules/
+
+# Doğrulama fotoğrafı arşivi (sunucu diski — hassas, repoya girmez)
+verifications/
