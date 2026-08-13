@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_myUid != null) {
         UserProfileRepository.instance.fetch(_myUid!).then((p) {
           if (mounted && p != null) setState(() => _myName = p.name);
-        });
+        }).catchError((_) {/* profil yüklenemedi — sessiz geç */});
         _loadRatePrompts();
         // Engel listesi: feed filtresi için yükle ve değişimini izle.
         ModerationRepository.instance.loadBlocks(_myUid!);

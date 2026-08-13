@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -43,7 +43,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _error;
 
   /// Geliştirici hesabı — foto/selfie adımları zorunlu değil (test kolaylığı).
-  bool get _isDev => widget.email == 'haskartal303@gmail.com';
+  /// YALNIZCA debug build'de; release'de herkes gerçek akıştan geçer.
+  bool get _isDev => kDebugMode && widget.email == 'haskartal303@gmail.com';
 
   /// Bu oturumun rastgele selfie pozu — önceden tahmin edilemesin diye
   /// çalışma anında seçilir; kayıtlı/başka fotoğraf pozu tutamaz.

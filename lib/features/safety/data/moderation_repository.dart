@@ -26,7 +26,7 @@ class ModerationRepository {
     if (_blocksLoaded) return;
     try {
       final snap = await _blocksDoc(uid).get();
-      final uids = List<String>.from(snap.data()?['uids'] ?? const []);
+      final uids = List<String>.from((snap.data()?['uids'] as List? ?? const []).whereType<String>());
       blocked.value = uids.toSet();
       _blocksLoaded = true;
     } catch (_) {/* çevrimdışı — engelsiz devam */}

@@ -68,7 +68,7 @@ class FlockDoc {
       };
 
   factory FlockDoc.fromMap(String id, Map<String, dynamic> m) {
-    final memberUids = List<String>.from(m['memberUids'] ?? const []);
+    final memberUids = List<String>.from((m['memberUids'] as List? ?? const []).whereType<String>());
     return FlockDoc(
       id: id,
       vibeId: (m['vibeId'] ?? 'coffee') as String,

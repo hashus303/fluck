@@ -35,15 +35,18 @@ class UserProfile {
         'selfieProvided': selfieProvided,
         'verificationStatus': verificationStatus,
         'onboardingComplete': onboardingComplete,
-        if (email != null) 'email': email,
+        // NOT: e-posta artık herkese-okunur ana belgeye YAZILMAZ (PII sızıntısı).
+        // Yalnızca kilitli users/{uid}/private/contact'ta tutulur (repository).
         if (photoB64 != null) 'photoB64': photoB64,
       };
 
   factory UserProfile.fromMap(String uid, Map<String, dynamic> m) => UserProfile(
         uid: uid,
         name: (m['name'] ?? '') as String,
-        age: (m['age'] ?? 0) as int,
-        interests: List<String>.from(m['interests'] ?? const []),
+        // Firestore tam sayıyı double döndürebilir (25.0) — güvenli çevir.
+        age: ((m['age'] ?? 0) as num).toInt(),
+        // Dizide null/yabancı eleman olsa bile tüm akış çökmesin.
+        interests: List<String>.from((m['interests'] as List? ?? const []).whereType<String>()),
         photoProvided: (m['photoProvided'] ?? false) as bool,
         selfieProvided: (m['selfieProvided'] ?? false) as bool,
         verificationStatus: (m['verificationStatus'] ?? 'none') as String,

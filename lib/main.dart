@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -143,9 +144,9 @@ class _ProfileGate extends StatelessWidget {
           return OnboardingScreen(uid: uid, email: email);
         }
         // Doğrulama kapısı: selfie onaylanmadan uygulama açılmaz.
-        // (Geliştirici hesabı test için muaf; statü canlı izlendiğinden
-        // admin onayı gelir gelmez uygulama kendiliğinden açılır.)
-        final isDev = email == 'haskartal303@gmail.com';
+        // (Geliştirici muafiyeti YALNIZCA debug build'de — release'de arka
+        // kapı yok; statü canlı izlendiğinden admin onayı gelince açılır.)
+        final isDev = kDebugMode && email == 'haskartal303@gmail.com';
         if (!profile.isVerified && !isDev) {
           return VerificationGateScreen(profile: profile);
         }

@@ -53,7 +53,7 @@ class _InviteScreenState extends State<InviteScreen> {
               _verified = p.verificationStatus == 'verified';
             });
           }
-        });
+        }).catchError((_) {/* profil yüklenemedi — sessiz geç */});
       }
     }
   }

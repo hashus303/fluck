@@ -25,12 +25,17 @@ class UserProfileRepository {
   }
 
   /// Onboarding sonunda profili kaydeder (merge ile).
-  Future<void> save(UserProfile profile) {
+  Future<void> save(UserProfile profile) async {
     _photoCache.remove(profile.uid);
-    return _users.doc(profile.uid).set({
+    await _users.doc(profile.uid).set({
       ...profile.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    // E-posta herkese-okunur belgede DEĞİL, yalnızca kilitli private alanda.
+    if (profile.email != null && profile.email!.isNotEmpty) {
+      await _users.doc(profile.uid).collection('private').doc('contact')
+          .set({'email': profile.email}, SetOptions(merge: true));
+    }
   }
 
   /// Profil fotoğrafını günceller (profil ekranındaki "fotoğraf değiştir").

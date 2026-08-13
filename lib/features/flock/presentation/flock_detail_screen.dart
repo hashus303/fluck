@@ -43,7 +43,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
       if (_myUid != null) {
         UserProfileRepository.instance.fetch(_myUid!).then((p) {
           if (mounted && p != null) setState(() => _myName = p.name);
-        });
+        }).catchError((_) {/* profil yüklenemedi — sessiz geç */});
       }
     }
   }
