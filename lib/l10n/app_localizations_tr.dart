@@ -471,6 +471,16 @@ class AppL10nTr extends AppL10n {
   String get verifRetake => 'Yeni selfie çek';
 
   @override
+  String get verifNeedTitle => 'Son adım: doğrulama';
+
+  @override
+  String get verifNeedBody =>
+      'Devam etmek için yüzünü net gösteren bir selfie çek. İncelenip onaylanınca uygulama açılır.';
+
+  @override
+  String get verifResend => 'Selfie\'yi yeniden gönder';
+
+  @override
   String get notifVerifApproved => 'Profilin doğrulandı 🎉';
 
   @override

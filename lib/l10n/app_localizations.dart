@@ -943,6 +943,24 @@ abstract class AppL10n {
   /// **'Retake selfie'**
   String get verifRetake;
 
+  /// No description provided for @verifNeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One last step: verification'**
+  String get verifNeedTitle;
+
+  /// No description provided for @verifNeedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a selfie clearly showing your face to continue. The app opens once it\'s reviewed and approved.'**
+  String get verifNeedBody;
+
+  /// No description provided for @verifResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend selfie'**
+  String get verifResend;
+
   /// No description provided for @notifVerifApproved.
   ///
   /// In en, this message translates to:

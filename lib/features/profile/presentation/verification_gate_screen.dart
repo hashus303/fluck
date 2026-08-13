@@ -66,7 +66,20 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppL10n.of(context);
-    final rejected = widget.profile.isVerificationRejected;
+    final pending = widget.profile.isVerificationPending;   // 'pending' — selfie incelemede
+    final rejected = widget.profile.isVerificationRejected; // 'rejected'
+    // pending → beklet (yine de yeniden gönderme çıkışı sun); rejected/none →
+    // doğrudan selfie gönderme ekranı (kimse çıkışsız kalmasın).
+    final needsSubmit = !pending;
+
+    final emoji = pending ? '🕵️' : (rejected ? '🙈' : '📸');
+    final title = pending
+        ? t.verifPendingTitle
+        : (rejected ? t.verifRejectedTitle : t.verifNeedTitle);
+    final body = pending
+        ? t.verifPendingBody
+        : (rejected ? t.verifRejectedBody : t.verifNeedBody);
+
     return Scaffold(
       backgroundColor: AppColors.bgPage,
       body: SafeArea(
@@ -82,18 +95,16 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: Text(rejected ? '🙈' : '🕵️',
-                    style: const TextStyle(fontSize: 40)),
+                child: Text(emoji, style: const TextStyle(fontSize: 40)),
               ),
               const SizedBox(height: 22),
-              Text(rejected ? t.verifRejectedTitle : t.verifPendingTitle,
-                  textAlign: TextAlign.center, style: AppText.display(24)),
+              Text(title, textAlign: TextAlign.center, style: AppText.display(24)),
               const SizedBox(height: 10),
-              Text(rejected ? t.verifRejectedBody : t.verifPendingBody,
+              Text(body,
                   textAlign: TextAlign.center,
                   style: AppText.body(14.5, color: AppColors.textMuted)),
               const SizedBox(height: 20),
-              if (rejected) ...[
+              if (needsSubmit) ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -113,8 +124,6 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                   ]),
                 ),
                 const SizedBox(height: 16),
-              ],
-              if (rejected)
                 _busy
                     ? const CircularProgressIndicator(color: AppColors.brand)
                     : FlockButton(
@@ -122,9 +131,19 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                         full: true,
                         leadingIcon: Icons.photo_camera_outlined,
                         onPressed: _retakeSelfie,
-                      )
-              else
+                      ),
+              ] else ...[
+                // Beklerken: canlı spinner + takılırsa yeniden gönderme çıkışı.
                 const CircularProgressIndicator(color: AppColors.brand),
+                const SizedBox(height: 14),
+                if (!_busy)
+                  TextButton(
+                    onPressed: _retakeSelfie,
+                    child: Text(t.verifResend,
+                        style: AppText.body(13.5,
+                            weight: FontWeight.w700, color: AppColors.brand)),
+                  ),
+              ],
               const SizedBox(height: 18),
               TextButton(
                 onPressed: () => AuthRepository.instance.signOut(),

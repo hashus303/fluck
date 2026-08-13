@@ -470,6 +470,16 @@ class AppL10nEn extends AppL10n {
   String get verifRetake => 'Retake selfie';
 
   @override
+  String get verifNeedTitle => 'One last step: verification';
+
+  @override
+  String get verifNeedBody =>
+      'Take a selfie clearly showing your face to continue. The app opens once it\'s reviewed and approved.';
+
+  @override
+  String get verifResend => 'Resend selfie';
+
+  @override
   String get notifVerifApproved => 'Your profile is verified 🎉';
 
   @override
