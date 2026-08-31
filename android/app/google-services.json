@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "182331722242-iojao4es178nsaua2h1fb7fshrahrg5h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hashus303.fluck",
+            "certificate_hash": "57c08b0e4e1c0ab35c87d38e70d280f5d8fac224"
+          }
+        },
+        {
           "client_id": "182331722242-lfi0a0gm6clgksfv1dp9g1njptvi4abi.apps.googleusercontent.com",
           "client_type": 3
         }

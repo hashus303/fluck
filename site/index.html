@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flock — Yakınındaki gruba katıl, çık</title>
+<meta name="description" content="Planlama yok. Flock'u aç, yakınındaki canlı buluşma davetlerini gör, tek dokunuşla katıl. Kararsızsan zar at. Kahve, yürüyüş, oyun — hep grup, doğrulanmış kişiler." />
+<meta name="theme-color" content="#FB5436" />
+<link rel="icon" href="assets/logo.png" />
+<meta property="og:title" content="Flock — Yakınındaki gruba katıl, çık" />
+<meta property="og:description" content="Yakınındaki canlı buluşma davetleri, şu an. Tek dokunuşla katıl, kararsızsan zar at." />
+<meta property="og:image" content="assets/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   Flock — design tokens inherited verbatim from the app
+   (lib/core/theme/app_colors.dart + app_theme.dart)
+   ============================================================ */
+:root{
+  --coral-50:#FFF1ED; --coral-100:#FFE0D6; --coral-200:#FFC2AF; --coral-300:#FF9B7E;
+  --coral-400:#FF7350; --coral-500:#FB5436; --coral-600:#E63E22; --coral-700:#BE2F18;
+  --trust-50:#E8F8F1; --trust-100:#C7EFDD; --trust-300:#54CB9C; --trust-500:#0E9669; --trust-600:#0A7B57;
+  --sky-500:#2D6BE0;
+  --ink-900:#1A1512; --ink-800:#2C2521; --ink-600:#6B5E55; --ink-500:#8C7E73;
+  --ink-300:#D2C7BE; --ink-200:#E8DFD8; --ink-100:#F3ECE5;
+  --cream:#FBF4EE; --cream-deep:#F4EAE0; --paper:#FFFFFF;
+  --amber:#F5A524; --red:#E5484D;
+  --vibe-coffee:#B87333; --vibe-bar:#8B5CF6; --vibe-walk:#2D6BE0;
+  --vibe-games:#C026A8; --vibe-food:#E0681F; --vibe-music:#DB2777;
+
+  --brand:var(--coral-500); --brand-hover:var(--coral-600); --brand-press:var(--coral-700);
+  --coral-cta:#CE3B20; /* tuned so #fff label hits WCAG AA (4.9:1) while staying Flock coral */
+
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:24px; --r-card:20px; --r-pill:999px;
+
+  --sh-sm:0 1px 2px rgba(40,24,16,.06), 0 2px 6px rgba(40,24,16,.05);
+  --sh-card:0 2px 4px rgba(40,24,16,.05), 0 6px 16px rgba(40,24,16,.08);
+  --sh-lift:0 8px 14px rgba(40,24,16,.07), 0 22px 48px rgba(40,24,16,.14);
+  --glow:0 6px 20px rgba(251,84,54,.32);
+
+  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono:'JetBrains Mono', ui-monospace, monospace;
+
+  --maxw:1180px;
+}
+
+*{box-sizing:border-box; margin:0; padding:0; min-width:0}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth; overflow-x:hidden; width:100%}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  font-family:var(--font-body);
+  color:var(--ink-800);
+  background:var(--cream);
+  line-height:1.45;
+  letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+/* --- Themed browser surfaces (craft floor) --- */
+::selection{background:var(--coral-200); color:var(--ink-900)}
+::-webkit-scrollbar{width:12px; height:12px}
+::-webkit-scrollbar-track{background:var(--cream-deep)}
+::-webkit-scrollbar-thumb{background:var(--coral-300); border:3px solid var(--cream-deep); border-radius:var(--r-pill)}
+::-webkit-scrollbar-thumb:hover{background:var(--coral-400)}
+*{scrollbar-color:var(--coral-300) var(--cream-deep)}
+:focus-visible{outline:2.5px solid var(--coral-500); outline-offset:3px; border-radius:6px}
+a{color:inherit; text-decoration:none}
+
+h1,h2,h3{font-family:var(--font-display); font-weight:700; line-height:1.06; letter-spacing:-.03em; color:var(--ink-900); text-wrap:balance}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+.wrap{max-width:var(--maxw); margin-inline:auto; padding-inline:24px}
+section{position:relative}
+
+/* ============================================================ NAV */
+.nav{position:sticky; top:0; z-index:60; background:rgba(251,244,238,.82);
+  backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px);
+  border-bottom:1px solid var(--ink-200)}
+.nav-in{display:flex; align-items:center; gap:16px; height:66px}
+.brand{display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:800;
+  font-size:20px; letter-spacing:-.03em; color:var(--ink-900)}
+.brand img{width:34px; height:34px; border-radius:9px; box-shadow:var(--sh-sm)}
+.nav-spacer{flex:1}
+.nav-links{display:flex; gap:26px; align-items:center}
+.nav-links a{font-size:15px; font-weight:600; color:var(--ink-600); transition:color .18s}
+.nav-links a:hover{color:var(--ink-900)}
+@media(max-width:760px){.nav-links{display:none}}
+@media(max-width:560px){.nav .btn-primary{display:none}}
+.lang{display:inline-flex; background:var(--cream-deep); border-radius:var(--r-pill); padding:3px;
+  border:1px solid var(--ink-200)}
+.lang button{font-family:var(--font-body); font-weight:700; font-size:13px; letter-spacing:.02em;
+  color:var(--ink-600); background:none; border:0; cursor:pointer; padding:5px 11px; border-radius:var(--r-pill); transition:all .18s}
+.lang button[aria-pressed="true"]{background:var(--paper); color:var(--ink-900); box-shadow:var(--sh-sm)}
+
+.btn{display:inline-flex; align-items:center; gap:9px; font-family:var(--font-body); font-weight:700;
+  font-size:15px; letter-spacing:-.01em; cursor:pointer; border:0; border-radius:var(--r-pill);
+  padding:13px 22px; transition:transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .2s, background .2s}
+.btn svg{width:18px; height:18px}
+.btn-primary{background:var(--coral-cta); color:#fff; box-shadow:var(--glow)}
+.btn-primary:hover{background:var(--brand-press); transform:translateY(-2px); box-shadow:0 10px 26px rgba(251,84,54,.42)}
+.btn-primary:active{background:var(--brand-press); transform:translateY(0)}
+.btn-ghost{background:var(--paper); color:var(--ink-900); box-shadow:var(--sh-sm); border:1px solid var(--ink-200)}
+.btn-ghost:hover{transform:translateY(-2px); box-shadow:var(--sh-card)}
+.btn-sm{padding:9px 16px; font-size:14px}
+
+/* ============================================================ HERO */
+.hero{padding:64px 0 40px; position:relative; overflow:hidden}
+.hero-grid{display:grid; grid-template-columns:1.02fr .98fr; gap:40px; align-items:center}
+@media(max-width:920px){.hero-grid{grid-template-columns:1fr; gap:30px}}
+.hero h1{font-size:clamp(2.15rem, 6.4vw, 4.4rem); font-weight:800; margin-bottom:20px; margin-top:8px}
+.hero h1 em{font-style:normal; color:var(--brand); position:relative}
+.hero .lead{font-size:clamp(1.05rem,1.6vw,1.28rem); color:var(--ink-600); max-width:34ch; margin-bottom:30px; line-height:1.5}
+.hero-cta{display:flex; gap:13px; flex-wrap:wrap; align-items:center}
+.hero-note{margin-top:18px; font-size:14px; color:var(--ink-600); display:flex; align-items:center; gap:9px}
+.hero-note svg{width:16px; height:16px; color:var(--trust-500); flex:none}
+
+/* flock of birds drifting behind hero */
+.sky{position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5}
+.sky .bird{position:absolute; color:var(--coral-200); animation:drift linear infinite}
+@keyframes drift{from{transform:translateX(-8vw)}to{transform:translateX(8vw)}}
+.hero .wrap{position:relative; z-index:1}
+
+/* ---- Showcase wall (THE ROLL: signature composition) ---- */
+.wall{position:relative; min-width:0; max-width:100%; overflow:hidden}
+.wall-cap{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:0; color:var(--ink-600); margin-bottom:12px; padding-left:2px}
+.wall-cap .live{width:8px; height:8px; border-radius:50%; background:var(--coral-500); flex:none}
+.rail{display:flex; gap:16px; overflow-x:auto; padding:8px 4px 20px; scroll-snap-type:x mandatory; -ms-overflow-style:none}
+.rail.auto{overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 93%,transparent 100%)}
+.rail-track{display:flex; gap:16px}
+.rail.auto .rail-track{animation:marquee 34s linear infinite}
+.rail.auto:hover .rail-track{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 8px))}}
+@media (prefers-reduced-motion:reduce){.rail.auto .rail-track{animation:none}}
+
+.fcard{scroll-snap-align:start; flex:0 0 260px; background:var(--paper); border-radius:var(--r-card);
+  box-shadow:var(--sh-card); border:1px solid var(--ink-100); padding:16px; position:relative;
+  transition:transform .28s cubic-bezier(.2,.7,.3,1), box-shadow .28s, opacity .28s; will-change:transform}
+.rail:hover .fcard{opacity:.62}
+.rail .fcard:hover{opacity:1; transform:translateY(-8px) scale(1.02); box-shadow:var(--sh-lift); z-index:2}
+.fcard-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:13px}
+.vibe-tag{display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:13px;
+  padding:6px 11px 6px 8px; border-radius:var(--r-pill)}
+.vibe-tag svg{width:15px; height:15px}
+.countdown{font-family:var(--font-mono); font-weight:700; font-size:13px; color:var(--coral-700);
+  background:var(--coral-50); padding:5px 9px; border-radius:8px; font-variant-numeric:tabular-nums}
+.countdown.soon{color:#fff; background:var(--coral-500)}
+.fcard h4{font-family:var(--font-display); font-weight:700; font-size:17px; color:var(--ink-900); letter-spacing:-.02em; margin-bottom:6px}
+.fcard .where{display:flex; align-items:center; gap:6px; font-size:14px; color:var(--ink-600); margin-bottom:16px}
+.fcard .where svg{width:14px; height:14px; color:var(--ink-500); flex:none}
+.fcard-foot{display:flex; align-items:center; justify-content:space-between}
+.avatars{display:flex}
+.avatars span{width:27px; height:27px; border-radius:50%; border:2.5px solid var(--paper); margin-left:-8px;
+  display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; font-family:var(--font-body)}
+.avatars span:first-child{margin-left:0}
+.joined{font-size:13px; font-weight:700; color:var(--ink-600)}
+.joined b{color:var(--ink-900)}
+.seat{width:27px; height:27px; border-radius:50%; border:2px dashed var(--ink-300); margin-left:-8px; background:var(--cream)}
+
+/* ============================================================ STRIP */
+.strip{background:var(--ink-900); color:var(--cream); padding:22px 24px}
+.strip-in{display:flex; gap:34px; align-items:center; justify-content:center; flex-wrap:wrap;
+  padding:6px 20px; font-family:var(--font-display); font-weight:600; font-size:clamp(15px,2vw,19px); letter-spacing:-.02em}
+.strip-in .sep{color:var(--coral-400)}
+.strip-in b{color:#fff; font-weight:800}
+
+/* ============================================================ SECTION SHELL */
+.band{padding:88px 0}
+.band.tint{background:linear-gradient(180deg,var(--cream) 0%, var(--cream-deep) 100%)}
+.eyeless{max-width:640px; margin-bottom:52px}
+.band h2{font-size:clamp(1.9rem,3.6vw,2.9rem); font-weight:800; margin-bottom:16px}
+.band .sub{font-size:clamp(1rem,1.4vw,1.15rem); color:var(--ink-600); line-height:1.5}
+
+/* ---- How it works : sequenced journey (not same-size cards) ---- */
+.steps{display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative}
+@media(max-width:840px){.steps{grid-template-columns:1fr; gap:34px}}
+.step{position:relative; padding:0 26px}
+.step:not(:last-child){border-right:1px solid var(--ink-200)}
+@media(max-width:840px){.step{border-right:0!important; padding:0}}
+.step .n{font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--coral-600); margin-bottom:18px; display:inline-block}
+.step-h{display:flex; align-items:center; gap:13px; margin-bottom:11px}
+.step .si{color:var(--coral-500); flex:none; display:grid; place-items:center}
+.step .si svg{width:32px; height:32px}
+.step h3{font-size:1.35rem; font-weight:700}
+.step p{font-size:15px; color:var(--ink-600); line-height:1.5; max-width:32ch}
+
+/* ---- Dice moment ---- */
+.dice-wrap{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center}
+@media(max-width:840px){.dice-wrap{grid-template-columns:1fr; gap:36px}}
+.dice-stage{background:var(--paper); border-radius:var(--r-xl); box-shadow:var(--sh-card);
+  border:1px solid var(--ink-100); padding:38px; min-height:320px; display:grid; place-items:center; position:relative; overflow:hidden}
+.dice-btn{background:none; border:0; cursor:pointer; display:grid; place-items:center; gap:20px}
+.die{width:120px; height:120px; color:var(--coral-500); filter:drop-shadow(0 12px 22px rgba(251,84,54,.28)); transition:transform .1s}
+.die.rolling{animation:roll .6s cubic-bezier(.3,.1,.3,1)}
+@keyframes roll{0%{transform:rotate(0) scale(1)}25%{transform:rotate(160deg) scale(.86)}55%{transform:rotate(300deg) scale(1.08)}100%{transform:rotate(360deg) scale(1)}}
+.dice-hint{font-weight:700; color:var(--ink-500); font-size:14px}
+.dealt{position:absolute; inset:38px; display:none; opacity:0; transition:opacity .4s}
+.dealt.show{display:block; opacity:1}
+.dice-copy h2{margin-bottom:16px}
+
+/* ---- Vibes ---- */
+.vibes{display:flex; flex-wrap:wrap; gap:14px}
+.vibe{display:inline-flex; align-items:center; gap:11px; background:var(--paper); border:1px solid var(--ink-200);
+  border-radius:var(--r-pill); padding:12px 20px 12px 14px; font-weight:700; font-size:15px; color:var(--ink-900);
+  box-shadow:var(--sh-sm); transition:transform .16s, box-shadow .2s; cursor:default}
+.vibe:hover{transform:translateY(-3px); box-shadow:var(--sh-card)}
+.vibe .g{width:38px; height:38px; border-radius:12px; display:grid; place-items:center; color:#fff}
+.vibe .g svg{width:21px; height:21px}
+
+/* ---- Trust ledger ---- */
+.ledger{display:grid; grid-template-columns:1fr 1fr; gap:14px 40px}
+@media(max-width:840px){.ledger{grid-template-columns:1fr}}
+.lrow{display:flex; gap:18px; padding:22px 4px; border-top:1px solid var(--ink-200)}
+.lrow .li{width:46px; height:46px; flex:none; border-radius:13px; display:grid; place-items:center;
+  background:var(--trust-50); color:var(--trust-600); box-shadow:var(--sh-sm)}
+.lrow .li svg{width:24px; height:24px}
+.lrow.coral .li{background:var(--coral-50); color:var(--coral-600)}
+.lrow h4{font-family:var(--font-display); font-weight:700; font-size:1.35rem; color:var(--ink-900); margin-bottom:6px; letter-spacing:-.02em}
+.lrow p{font-size:14px; color:var(--ink-600); line-height:1.5}
+
+/* ---- Close ---- */
+.close{background:linear-gradient(155deg,var(--coral-500) 0%, var(--coral-600) 55%, var(--coral-700) 100%);
+  color:#fff; border-radius:32px; padding:70px 40px; text-align:center; position:relative; overflow:hidden; box-shadow:var(--sh-lift)}
+.close .sky{opacity:.35}
+.close .sky .bird{color:rgba(255,255,255,.7)}
+.close h2{color:#fff; font-size:clamp(2rem,4vw,3.1rem); font-weight:800; margin-bottom:16px; position:relative}
+.close p{color:rgba(255,255,255,.92); font-size:1.15rem; max-width:44ch; margin:0 auto 30px; position:relative}
+.close .btn-primary{background:#fff; color:var(--coral-700); box-shadow:0 10px 30px rgba(0,0,0,.18); position:relative}
+.close .btn-primary:hover{background:#fff; transform:translateY(-2px)}
+.close .mini{margin-top:20px; font-size:14px; color:rgba(255,255,255,.92); position:relative}
+
+/* ============================================================ FOOTER */
+footer{padding:52px 0 40px; border-top:1px solid var(--ink-200); background:var(--cream)}
+.foot-in{display:flex; justify-content:space-between; gap:30px; flex-wrap:wrap; align-items:center}
+.foot-brand{display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:800; font-size:20px; color:var(--ink-900)}
+.foot-brand img{width:30px; height:30px; border-radius:8px}
+.foot-links{display:flex; gap:26px; flex-wrap:wrap}
+.foot-links a{font-size:14px; font-weight:600; color:var(--ink-600); transition:color .18s}
+.foot-links a:hover{color:var(--coral-600)}
+.foot-copy{width:100%; margin-top:26px; font-size:13px; color:var(--ink-500)}
+
+/* reveal */
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease-out, transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1; transform:none; transition:none}}
+
+/* ---- Mobile fit ---- */
+@media(max-width:560px){
+  .wrap{padding-inline:18px}
+  .hero{padding:34px 0 26px}
+  .hero .lead{max-width:none}
+  .band{padding:56px 0}
+  .eyeless{margin-bottom:34px}
+  .strip{padding:18px}
+  .strip-in{gap:14px 22px; font-size:15px}
+  .dice-wrap,.ledger{gap:26px}
+  .dice-stage{padding:28px; min-height:260px}
+  .die{width:96px; height:96px}
+  .close{padding:52px 22px; border-radius:24px}
+  .foot-in{flex-direction:column; align-items:flex-start; gap:18px}
+  .lrow{padding:18px 2px}
+  .step{padding:0}
+}
+</style>
+</head>
+<body>
+<!--
+  DIRECTION CONTRACT — Flock marketing surface (Persuade)  · seed 18fdfdaf
+  THESIS: Flock is a *living shelf of invites happening now, near you* — a browsable
+    wall of expiring flock cards, not a static app-store screenshot hero.
+  OWN-WORLD: Flock design system, inherited verbatim — coral #FB5436 on warm cream
+    #FBF4EE, Bricolage Grotesque display / Plus Jakarta Sans body / JetBrains Mono
+    countdowns, warm-tinted soft shadows, pill radii, four-bird flock motif.
+  STORY: visitor grasps "spontaneous nearby group meetups that expire", believes it is
+    alive and trustworthy by design, acts → early access / explore.
+  FIRST VIEWPORT: left = one-line hook + primary CTA; right = auto-scrolling showcase
+    wall of flock cards with ticking mono countdowns, focused tile lifts, rest dim.
+  FORM: Showcase Wall — ranked #5 of my grounded list, dealt as THE ROLL lead; seed 18fdfdaf.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+-->
+
+<!-- reusable SVG symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="bird" viewBox="0 0 64 48">
+    <path d="M3 28 C 19 12, 35 12, 47 17 C 39 18, 34 24, 31 35 C 34 30, 41 29, 51 25 C 45 30, 41 37, 35 46 C 33 40, 32 37, 30 35 C 28 26, 20 24, 3 28 Z"/>
+  </symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><img src="assets/logo.png" alt="Flock" /> Flock</a>
+    <div class="nav-spacer"></div>
+    <nav class="nav-links">
+      <a href="#how" data-tr="Nasıl çalışır" data-en="How it works">Nasıl çalışır</a>
+      <a href="#vibes" data-tr="Vibe'lar" data-en="Vibes">Vibe'lar</a>
+      <a href="#trust" data-tr="Güven" data-en="Trust">Güven</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Dil / Language">
+      <button data-lang="tr" aria-pressed="true">TR</button>
+      <button data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <a href="#early" class="btn btn-primary btn-sm" data-tr="Erken erişim" data-en="Early access">Erken erişim</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="sky" id="heroSky" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <h1 data-tr="Planlama yok. Aç, yakındaki bir gruba <em>katıl</em>, çık." data-en="Skip the planning. Open, <em>join</em> a group nearby, go."></h1>
+        <p class="lead" data-tr="Kahve, yürüyüş, bilardo… şu an yakınında canlı buluşma davetleri. Beğendiğine tek dokunuşla katıl — kararsızsan zar at." data-en="Coffee, a walk, a game of pool — live meetup invites near you, right now. Join in one tap, or roll the dice."></p>
+        <div class="hero-cta">
+          <a href="#early" class="btn btn-primary" data-tr="Erken erişime katıl" data-en="Get early access">Erken erişime katıl</a>
+          <a href="#how" class="btn btn-ghost" data-tr="Nasıl çalışır?" data-en="How it works?">Nasıl çalışır?</a>
+        </div>
+        <p class="hero-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          <span data-tr="Doğrulanmış kişiler · hep grup, en az 3 kişi · çift yönlü puan" data-en="Verified people · group-only, 3+ minimum · two-way ratings"></span>
+        </p>
+      </div>
+
+      <!-- Showcase wall -->
+      <div class="wall">
+        <div class="wall-cap"><span class="live"></span><span data-tr="Şu an yakınında · örnek davetler" data-en="Live near you · sample invites">Şu an yakınında · örnek davetler</span></div>
+        <div class="rail auto" id="wall"><div class="rail-track" id="wallTrack"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STRIP ===================== -->
+<section class="strip">
+  <div class="wrap"><div class="strip-in">
+    <span data-tr="Anlık buluşmalar" data-en="Meet on impulse"><b data-tr="Anlık" data-en="On impulse"></b> <span data-tr="buluşmalar" data-en="meetups"></span></span>
+    <span class="sep">◦</span>
+    <span><b data-tr="30 dk – 2 saat" data-en="30 min – 2 hrs"></b> <span data-tr="sonra kapanır" data-en="then it's gone"></span></span>
+    <span class="sep">◦</span>
+    <span><b data-tr="Hep grup" data-en="Always a group"></b> <span data-tr="· bire bir yok" data-en="· never one-on-one"></span></span>
+    <span class="sep">◦</span>
+    <span><b data-tr="Zar" data-en="Dice"></b> <span data-tr="seçer, sen katıl" data-en="picks, you join"></span></span>
+  </div></div>
+</section>
+
+<!-- ===================== HOW ===================== -->
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="eyeless reveal">
+      <h2 data-tr="Üç dokunuş, dışarıdasın" data-en="Three taps and you're out"></h2>
+      <p class="sub" data-tr="Grup kurmak, mesajlaşmak, tarih ayarlamak yok. Flock zaten canlı — sen sadece katılıyorsun." data-en="No group chats, no scheduling, no back-and-forth. The flock is already live — you just join."></p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="n">01</span>
+        <div class="step-h"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span><h3 data-tr="Aç ve gör" data-en="Open & see"></h3></div>
+        <p data-tr="Yakınındaki canlı davetleri haritada ve listede gör. Mesafeye ve vibe'a göre süz." data-en="See live invites near you on the map and list. Filter by distance and vibe."></p>
+      </div>
+      <div class="step reveal">
+        <span class="n">02</span>
+        <div class="step-h"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/></svg></span><h3 data-tr="Katıl ya da zar at" data-en="Join or roll"></h3></div>
+        <p data-tr="Beğendiğine tek dokunuşla katıl. Seçemiyorsan zar senin için rastgele bir flock seçsin." data-en="Join what you like in one tap. Can't decide? Let the dice pick a random flock for you."></p>
+      </div>
+      <div class="step reveal">
+        <span class="n">03</span>
+        <div class="step-h"><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.6-3 3-4.6 5.5-4.6S13.9 16 14.5 19"/><path d="M15 14.5c2 .2 3.7 1.6 4.2 4"/></svg></span><h3 data-tr="Buluş" data-en="Meet up"></h3></div>
+        <p data-tr="Grup dolunca mekanda buluşun. Davet, host'un seçtiği sürede otomatik kapanır." data-en="When the group fills, meet at the venue. The invite auto-closes when the host's timer runs out."></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DICE ===================== -->
+<section class="band tint">
+  <div class="wrap dice-wrap">
+    <div class="dice-copy reveal">
+      <h2 data-tr="Karar yükü sıfır" data-en="Zero decisions"></h2>
+      <p class="sub" data-tr="Seçmek yorucu. Flock'un imzası: zar. Çevir, sana yakın rastgele bir flock önüne düşsün — beğenmezsen tekrar at. Tek dokunuş, sıfır düşünce." data-en="Choosing is tiring. Flock's signature move: the dice. Roll it, and a random flock near you lands in front of you — roll again if it's not your thing. One tap, zero overthinking."></p>
+      <p class="hero-note" style="margin-top:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span data-tr="Aşağıdaki zarı dene 👇" data-en="Try the dice below 👇"></span></p>
+    </div>
+    <div class="dice-stage">
+      <button class="dice-btn" id="diceBtn" aria-label="Zar at">
+        <svg class="die" id="die" viewBox="0 0 100 100" fill="none">
+          <rect x="8" y="8" width="84" height="84" rx="22" fill="currentColor"/>
+          <g fill="#fff" id="pips"></g>
+        </svg>
+        <span class="dice-hint" id="diceHint" data-tr="Zar at" data-en="Roll the dice">Zar at</span>
+      </button>
+      <div class="dealt" id="dealt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== VIBES ===================== -->
+<section class="band" id="vibes">
+  <div class="wrap">
+    <div class="eyeless reveal">
+      <h2 data-tr="Ne yapmak istersen" data-en="Whatever the vibe"></h2>
+      <p class="sub" data-tr="Her flock bir vibe taşır. Canın ne çekiyorsa onu seç — ya da hepsine açık kal." data-en="Every flock carries a vibe. Pick what you're in the mood for — or stay open to all of them."></p>
+    </div>
+    <div class="vibes reveal" id="vibes"></div>
+  </div>
+</section>
+
+<!-- ===================== TRUST ===================== -->
+<section class="band tint" id="trust">
+  <div class="wrap">
+    <div class="eyeless reveal">
+      <h2 data-tr="Güven, arka planda" data-en="Trust, quietly built in"></h2>
+      <p class="sub" data-tr="Dışarı çıkmak kolay gelsin diye güven, gürültü yapmadan arka planda çalışır. Kadın güvenliği tasarımın merkezinde." data-en="Trust runs quietly in the background so going out feels easy. Women's safety sits at the center of the design."></p>
+    </div>
+    <div class="ledger reveal" id="ledger"></div>
+  </div>
+</section>
+
+<!-- ===================== CLOSE ===================== -->
+<section class="band" id="early">
+  <div class="wrap">
+    <div class="close reveal">
+      <div class="sky" id="closeSky" aria-hidden="true"></div>
+      <h2 data-tr="Yakında yayında." data-en="Launching soon."></h2>
+      <p data-tr="İlk açılan şehir seninki olsun. Kapalı teste katıl, erişim çıkar çıkmaz haberin olsun." data-en="Make your city one of the first. Join the closed beta and hear the moment access opens."></p>
+      <a href="mailto:haskartal303@gmail.com?subject=Flock%20erken%20eri%C5%9Fim" class="btn btn-primary" data-tr="Erken erişim iste" data-en="Request early access">Erken erişim iste</a>
+      <p class="mini" data-tr="Google Play'de kapalı test · iOS yolda" data-en="Closed beta on Google Play · iOS on the way">Google Play'de kapalı test · iOS yolda</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <div class="foot-brand"><img src="assets/logo.png" alt="" /> Flock</div>
+      <nav class="foot-links">
+        <a href="#how" data-tr="Nasıl çalışır" data-en="How it works">Nasıl çalışır</a>
+        <a href="#trust" data-tr="Güven" data-en="Trust">Güven</a>
+        <a href="privacy-policy.html" data-tr="Gizlilik" data-en="Privacy">Gizlilik</a>
+        <a href="hesap-silme.html" data-tr="Hesap silme" data-en="Delete account">Hesap silme</a>
+      </nav>
+    </div>
+    <div class="foot-copy" data-tr="© 2026 Flock · TengriX tarafından geliştirildi. Spontan, grup öncelikli buluşmalar." data-en="© 2026 Flock · built by TengriX. Spontaneous, group-first meetups."></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* ---------- vibe icon set (authored SVG, consistent 1.9 stroke) ---------- */
+  var S='fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"';
+  var VIBES = [
+    {key:'coffee', tr:'Kahve', en:'Coffee', c:'var(--vibe-coffee)',
+      svg:'<path d="M4 9h13v4a5 5 0 01-5 5H9a5 5 0 01-5-5V9z"/><path d="M17 10h2.5a2.5 2.5 0 010 5H17"/><path d="M8 3c-.6 1 .6 1.8 0 3M12 3c-.6 1 .6 1.8 0 3"/>'},
+    {key:'bar', tr:'Bar', en:'Bar', c:'var(--vibe-bar)',
+      svg:'<path d="M5 4h14l-7 8z"/><path d="M12 12v7M8 20h8"/>'},
+    {key:'walk', tr:'Yürüyüş', en:'Walk', c:'var(--vibe-walk)',
+      svg:'<circle cx="13" cy="4.5" r="1.8"/><path d="M11 9l-2 4 3 2 1 5M11 9l4 1 2 3M9 13l-2 5"/>'},
+    {key:'games', tr:'Oyun', en:'Games', c:'var(--vibe-games)',
+      svg:'<rect x="2.5" y="7" width="19" height="10" rx="5"/><path d="M7 11v2M6 12h2"/><circle cx="16" cy="11.5" r="1"/><circle cx="18" cy="13.5" r="1"/>'},
+    {key:'food', tr:'Yemek', en:'Food', c:'var(--vibe-food)',
+      svg:'<path d="M5 3v7a2 2 0 004 0V3M7 10v11M17 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4M17 3v18"/>'},
+    {key:'music', tr:'Müzik', en:'Music', c:'var(--vibe-music)',
+      svg:'<path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/>'}
+  ];
+  function vibeIco(v,size){return '<svg viewBox="0 0 24 24" '+S+' style="width:'+size+'px;height:'+size+'px">'+v.svg+'</svg>';}
+
+  /* ---------- demo flocks (synthetic — labelled "örnek/sample") ---------- */
+  var HOSTS=['Zeynep','Deniz','Ece','Mert','Selin','Kaan','Ada','Bora','Lara','Efe'];
+  var FLOCKS=[
+    {v:'coffee', tr:'Sabah kahvesi', en:'Morning coffee', place:'Moda Sahil', j:3, t:5, s:2535},
+    {v:'walk', tr:'Gün batımı yürüyüşü', en:'Sunset walk', place:'Maçka Parkı', j:4, t:6, s:1120},
+    {v:'games', tr:'Bilardo turu', en:'Pool night', place:'Kadıköy', j:2, t:4, s:4340},
+    {v:'food', tr:'Akşam yemeği', en:'Dinner run', place:'Karaköy', j:5, t:8, s:3302},
+    {v:'music', tr:'Canlı müzik', en:'Live music', place:'Beyoğlu', j:6, t:8, s:1391},
+    {v:'bar', tr:'Bira & sohbet', en:'Beers & chat', place:'Beşiktaş', j:3, t:6, s:5600}
+  ];
+  var AV=['var(--coral-500)','var(--vibe-walk)','var(--trust-500)','var(--vibe-music)','var(--vibe-bar)','var(--vibe-food)','var(--vibe-games)','var(--vibe-coffee)'];
+  function vibeOf(k){for(var i=0;i<VIBES.length;i++)if(VIBES[i].key===k)return VIBES[i];return VIBES[0];}
+  function fmt(s){s=Math.max(0,s|0);var h=(s/3600)|0,m=((s%3600)/60)|0,ss=s%60;var p=function(n){return(n<10?'0':'')+n;};return h>0?(h+':'+p(m)+':'+p(ss)):(p(m)+':'+p(ss));}
+
+  function cardHTML(f,idx){
+    var v=vibeOf(f.v);
+    var seats=f.j, total=f.t;
+    var av='';
+    for(var i=0;i<seats;i++){av+='<span style="background:'+AV[(idx+i)%AV.length]+'">'+HOSTS[(idx+i)%HOSTS.length].charAt(0)+'</span>';}
+    for(var k=0;k<total-seats;k++){av+='<span class="seat"></span>';}
+    var soon=f.s<600?' soon':'';
+    return '<article class="fcard">'
+      +'<div class="fcard-top">'
+        +'<span class="vibe-tag" style="color:'+v.c+';background:color-mix(in srgb,'+v.c+' 12%,#fff)">'+vibeIco(v,15)+'<span data-vibe="'+v.key+'">'+v.tr+'</span></span>'
+        +'<span class="countdown'+soon+' mono" data-sec="'+f.s+'">'+fmt(f.s)+'</span>'
+      +'</div>'
+      +'<h4 data-fl="'+idx+'">'+f.tr+'</h4>'
+      +'<div class="where"><svg viewBox="0 0 24 24" '+S+'><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>'+f.place+'</div>'
+      +'<div class="fcard-foot"><div class="avatars">'+av+'</div>'
+        +'<span class="joined"><b>'+seats+'</b>/'+total+' <span data-join>katıldı</span></span>'
+      +'</div>'
+    +'</article>';
+  }
+
+  var track=document.getElementById('wallTrack');
+  var html='';
+  for(var i=0;i<FLOCKS.length;i++){html+=cardHTML(FLOCKS[i],i);}
+  track.innerHTML=html+html; // duplicate for seamless marquee
+
+  /* vibes row */
+  var vr=document.getElementById('vibes'), vh='';
+  for(var vi=0;vi<VIBES.length;vi++){var v=VIBES[vi];
+    vh+='<div class="vibe"><span class="g" style="background:'+v.c+'">'+vibeIco(v,21)+'</span><span data-vibe="'+v.key+'">'+v.tr+'</span></div>';}
+  vr.innerHTML=vh;
+
+  /* trust ledger */
+  var LEDG=[
+    {tone:'coral', tr:['Doğrulanmış kimlik','Herkes selfie + kimlikle doğrulanır. Doğrulanmadan kimse davetlere katılamaz.'],
+      en:['Verified identity','Everyone is verified with a selfie + ID. No one joins invites until they pass.'],
+      svg:'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>'},
+    {tone:'trust', tr:['Hep grup · en az 3 kişi','Bire bir buluşma yok. Her flock en az üç kişilik bir grup.'],
+      en:['Group-only · 3+ people','No one-on-one meetups. Every flock is a group of at least three.'],
+      svg:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.3"/><path d="M3.5 19c.6-3 3-4.6 5.5-4.6S13.9 16 14.5 19"/><path d="M15 14.5c2 .2 3.7 1.6 4.2 4"/>'},
+    {tone:'trust', tr:['Çift yönlü puan','Buluşma sonrası herkes birbirini puanlar. Düşük puanlar zamanla elenir.'],
+      en:['Two-way ratings','Everyone rates each other after meeting. Low scores get filtered out over time.'],
+      svg:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9z"/>'},
+    {tone:'coral', tr:['Canlı konum paylaşımı','İstersen buluşma boyunca bir yakınınla canlı konumunu paylaş.'],
+      en:['Live location sharing','If you want, share your live location with someone you trust for the meetup.'],
+      svg:'<path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/>'},
+    {tone:'trust', tr:['Trust score','Davranışına göre 0–100 güven puanı. Doğrulama, zamanında gelme ve iyi puanlar yükseltir.'],
+      en:['Trust score','A 0–100 score built from your behavior — verification, showing up on time, and good ratings.'],
+      svg:'<path d="M4 19V5M4 19h16M8 15l3-3 2.5 2L19 8"/>'},
+    {tone:'coral', tr:['Bildir & engelle','Rahatsız olduğunda tek dokunuşla bildir ya da engelle — bir daha o kişinin flock\'larını görmezsin.'],
+      en:['Report & block','Uncomfortable? Report or block in one tap — you\'ll never see that person\'s flocks again.'],
+      svg:'<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v4M12 15.5v.5"/>'}
+  ];
+  var lg=document.getElementById('ledger'), lh='';
+  for(var li=0;li<LEDG.length;li++){var r=LEDG[li];
+    lh+='<div class="lrow'+(r.tone==='coral'?' coral':'')+'"><span class="li"><svg viewBox="0 0 24 24" '+S+'>'+r.svg+'</svg></span>'
+      +'<div><h4 data-l="'+li+'">'+r.tr[0]+'</h4><p data-lp="'+li+'">'+r.tr[1]+'</p></div></div>';}
+  lg.innerHTML=lh;
+
+  /* ---------- countdown ticker ---------- */
+  function tick(){
+    document.querySelectorAll('.countdown').forEach(function(el){
+      var s=parseInt(el.getAttribute('data-sec'),10)-1;
+      if(s<=0){s=1800+((Math.abs(el.textContent.length*777))%5400);} // recycle so it stays alive
+      el.setAttribute('data-sec',s);
+      el.textContent=fmt(s);
+      if(s<600){el.classList.add('soon');}else{el.classList.remove('soon');}
+    });
+  }
+  setInterval(tick,1000);
+
+  /* ---------- dice ---------- */
+  var PIP={1:[[50,50]],2:[[32,32],[68,68]],3:[[30,30],[50,50],[70,70]],
+    4:[[32,32],[68,32],[32,68],[68,68]],5:[[32,32],[68,32],[50,50],[32,68],[68,68]],
+    6:[[32,28],[68,28],[32,50],[68,50],[32,72],[68,72]]};
+  function drawFace(n){var g=document.getElementById('pips'),h='';(PIP[n]||PIP[1]).forEach(function(p){h+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="7"/>';});g.innerHTML=h;}
+  drawFace(5);
+  var die=document.getElementById('die'), dbtn=document.getElementById('diceBtn'),
+      dealt=document.getElementById('dealt'), dhint=document.getElementById('diceHint');
+  var rolling=false;
+  dbtn.addEventListener('click',function(){
+    if(rolling)return; rolling=true;
+    if(!reduce){die.classList.remove('rolling');void die.offsetWidth;die.classList.add('rolling');}
+    var n=1+((Math.floor((Date.now()/97))%6)); // deterministic-ish, no Math.random dependency
+    var idx=(n-1)%FLOCKS.length;
+    setTimeout(function(){
+      drawFace(n);
+      dealt.innerHTML=cardHTML(FLOCKS[idx],idx);
+      dealt.classList.add('show'); die.style.opacity=.12; dhint.style.opacity=.35;
+      applyLang(curLang, dealt); rolling=false;
+    }, reduce?0:560);
+  });
+
+  /* ---------- birds ---------- */
+  function makeSky(el,count){
+    if(!el||reduce)return; var h='';
+    for(var i=0;i<count;i++){
+      var top=(8+ (i*53)%80), left=(6+(i*37)%88), sz=16+ (i*13)%26, dur=9+(i*7)%12, del=(i*1.7)%6, op=.5+((i*11)%40)/100;
+      h+='<svg class="bird" style="top:'+top+'%;left:'+left+'%;width:'+sz+'px;animation-duration:'+dur+'s;animation-delay:-'+del+'s;opacity:'+op+'"><use href="#bird"/></svg>';
+    }
+    el.innerHTML=h;
+  }
+  makeSky(document.getElementById('heroSky'),7);
+  makeSky(document.getElementById('closeSky'),9);
+
+  /* ---------- reveal on scroll ---------- */
+  if('IntersectionObserver' in window && !reduce){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.05, rootMargin:'0px 0px -6% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+    // safety: nothing stays hidden if the observer never fires for it
+    setTimeout(function(){document.querySelectorAll('.reveal:not(.in)').forEach(function(el){var r=el.getBoundingClientRect();if(r.top<innerHeight*1.1)el.classList.add('in');});},1400);
+  }else{document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});}
+
+  /* ---------- i18n ---------- */
+  var curLang='tr';
+  function applyLang(lang,root){
+    root=root||document;
+    root.querySelectorAll('[data-tr]').forEach(function(el){
+      var val=el.getAttribute('data-'+lang);
+      if(val==null)return;
+      if(/<(em|span|b|svg)/i.test(val)){el.innerHTML=val;}else{el.textContent=val;}
+    });
+    // dynamic bits
+    root.querySelectorAll('[data-vibe]').forEach(function(el){var v=vibeOf(el.getAttribute('data-vibe'));el.textContent=(lang==='en'?v.en:v.tr);});
+    root.querySelectorAll('[data-fl]').forEach(function(el){var f=FLOCKS[+el.getAttribute('data-fl')];el.textContent=(lang==='en'?f.en:f.tr);});
+    root.querySelectorAll('[data-join]').forEach(function(el){el.textContent=(lang==='en'?'joined':'katıldı');});
+    root.querySelectorAll('[data-l]').forEach(function(el){var r=LEDG[+el.getAttribute('data-l')];el.textContent=(lang==='en'?r.en[0]:r.tr[0]);});
+    root.querySelectorAll('[data-lp]').forEach(function(el){var r=LEDG[+el.getAttribute('data-lp')];el.textContent=(lang==='en'?r.en[1]:r.tr[1]);});
+    if(root===document){document.documentElement.lang=lang; curLang=lang;}
+  }
+  document.querySelectorAll('.lang button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var lang=b.getAttribute('data-lang');
+      document.querySelectorAll('.lang button').forEach(function(x){x.setAttribute('aria-pressed', x===b?'true':'false');});
+      applyLang(lang);
+    });
+  });
+  applyLang('tr');
+})();
+</script>
+</body>
+</html>

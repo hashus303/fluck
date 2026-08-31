@@ -51,17 +51,21 @@ class UserProfileRepository {
   /// Doğrulama selfie'sini kilitli private alanına yazar. Kurallar gereği
   /// bu belgeyi yalnızca sahibi yazabilir/okuyabilir; inceleme konsoldan
   /// (admin) yapılır ve sonucu `verificationStatus` alanına işlenir.
-  Future<void> saveVerificationSelfie(String uid, String selfieB64) {
+  /// [meta] — doğrulama anındaki güvenlik verisi (lat/lng/ip). Varsa yazılır.
+  Future<void> saveVerificationSelfie(String uid, String selfieB64,
+      {Map<String, dynamic>? meta}) {
     return _users.doc(uid).collection('private').doc('verification').set({
       'selfieB64': selfieB64,
       'submittedAt': FieldValue.serverTimestamp(),
+      ...?meta,
     });
   }
 
   /// Reddedilen kullanıcı yeni selfie gönderir: selfie private alana yazılır,
   /// statü tekrar 'pending' olur (kurallar 'verified' yazmayı zaten engeller).
-  Future<void> resubmitSelfie(String uid, String selfieB64) async {
-    await saveVerificationSelfie(uid, selfieB64);
+  Future<void> resubmitSelfie(String uid, String selfieB64,
+      {Map<String, dynamic>? meta}) async {
+    await saveVerificationSelfie(uid, selfieB64, meta: meta);
     await _users.doc(uid).set({
       'selfieProvided': true,
       'verificationStatus': 'pending',

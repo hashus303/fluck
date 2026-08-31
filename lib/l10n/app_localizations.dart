@@ -265,6 +265,48 @@ abstract class AppL10n {
   /// **'Trust runs quietly in the background so going out feels easy.'**
   String get safetySubtitle;
 
+  /// No description provided for @safetyLede.
+  ///
+  /// In en, this message translates to:
+  /// **'Your verification status and the people you\'ve blocked.'**
+  String get safetyLede;
+
+  /// No description provided for @blockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked people'**
+  String get blockedTitle;
+
+  /// No description provided for @blockedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} blocked'**
+  String blockedCount(int n);
+
+  /// No description provided for @blockedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone.'**
+  String get blockedEmpty;
+
+  /// No description provided for @blockedEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can block someone from their flock — they\'ll disappear from your feed.'**
+  String get blockedEmptyHint;
+
+  /// No description provided for @unblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// No description provided for @unblockDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblocked.'**
+  String get unblockDone;
+
   /// No description provided for @identityVerified.
   ///
   /// In en, this message translates to:
@@ -643,6 +685,12 @@ abstract class AppL10n {
   /// **'Password'**
   String get password;
 
+  /// No description provided for @passwordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get passwordConfirm;
+
   /// No description provided for @emailHint.
   ///
   /// In en, this message translates to:
@@ -654,6 +702,12 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'At least 6 characters'**
   String get passwordHint;
+
+  /// No description provided for @passwordConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get passwordConfirmHint;
 
   /// No description provided for @signIn.
   ///
@@ -744,6 +798,18 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Password must be at least 6 characters'**
   String get errPasswordShort;
+
+  /// No description provided for @errPasswordConfirmRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get errPasswordConfirmRequired;
+
+  /// No description provided for @errPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords don\'t match'**
+  String get errPasswordMismatch;
 
   /// No description provided for @errInvalidCredentials.
   ///
@@ -1224,6 +1290,18 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'No notifications yet.'**
   String get notifEmpty;
+
+  /// No description provided for @notifAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get notifAnnouncement;
+
+  /// No description provided for @notifWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get notifWarning;
 
   /// No description provided for @notifJoined.
   ///

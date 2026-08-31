@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/image_util.dart';
+import '../../../core/services/verification_meta.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
@@ -54,7 +55,9 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
       }
       setState(() => _busy = true);
       final b64 = base64Encode(ImageUtil.shrink(await f.readAsBytes(), maxDim: 480));
-      await UserProfileRepository.instance.resubmitSelfie(widget.profile.uid, b64);
+      final meta = await VerificationMeta.capture();
+      await UserProfileRepository.instance
+          .resubmitSelfie(widget.profile.uid, b64, meta: meta.toMap());
       // Statü 'pending'e döner; main.dart'taki canlı akış ekranı yeniler.
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(t.errGeneric)));

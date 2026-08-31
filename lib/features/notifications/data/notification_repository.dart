@@ -1,14 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Tek bir bildirim: birinin flock'una katılması ('join') ya da
-/// admin doğrulama sonucu ('verification' — status: approved/rejected).
+/// Tek bir bildirim türleri:
+///  'join'          — birinin flock'una katılması
+///  'verification'  — admin doğrulama sonucu (status: approved/rejected)
+///  'announcement'  — admin duyurusu (text: mesaj)
+///  'warning'       — admin uyarısı (text: mesaj)
 class AppNotification {
   final String id;
-  final String type; // 'join' | 'verification'
+  final String type;
   final String flockId;
   final String venue;
   final String actorName;
   final String status; // 'verification' için: 'approved' | 'rejected'
+  final String text; // 'announcement' / 'warning' için mesaj
   final DateTime? createdAt;
   final bool read;
 
@@ -19,6 +23,7 @@ class AppNotification {
     required this.venue,
     required this.actorName,
     this.status = '',
+    this.text = '',
     this.createdAt,
     this.read = false,
   });
@@ -30,6 +35,7 @@ class AppNotification {
         venue: (m['venue'] ?? '') as String,
         actorName: (m['actorName'] ?? '') as String,
         status: (m['status'] ?? '') as String,
+        text: (m['text'] ?? '') as String,
         createdAt: (m['createdAt'] as Timestamp?)?.toDate(),
         read: (m['read'] ?? false) as bool,
       );

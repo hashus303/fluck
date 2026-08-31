@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/app_locale.dart';
+import 'core/services/fcm_service.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/location_controller.dart';
 import 'core/theme/app_colors.dart';
@@ -34,6 +35,8 @@ Future<void> main() async {
   // Tercihleri arka planda yükle; controller değişimi bildirir, UI yenilenir.
   localeController.load();
   locationController.load();
+  // Push bildirim: izin + token. Arka planda kur (akışı bloklamaz).
+  FcmService.instance.init();
 }
 
 class FluckApp extends StatelessWidget {
@@ -53,6 +56,7 @@ class FluckApp extends StatelessWidget {
           return MaterialApp(
             title: 'Flock',
             debugShowCheckedModeBanner: false,
+            scaffoldMessengerKey: FcmService.messengerKey,
             theme: AppTheme.light,
             locale: localeController.locale,
             supportedLocales: AppL10n.supportedLocales,
@@ -133,6 +137,8 @@ class _ProfileGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Kullanıcı belli — FCM token'ını onun kaydına yaz (idempotent).
+    FcmService.instance.registerFor(uid);
     return StreamBuilder<UserProfile?>(
       stream: UserProfileRepository.instance.watch(uid),
       builder: (context, snap) {

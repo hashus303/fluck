@@ -103,6 +103,31 @@ class AppL10nEn extends AppL10n {
       'Trust runs quietly in the background so going out feels easy.';
 
   @override
+  String get safetyLede =>
+      'Your verification status and the people you\'ve blocked.';
+
+  @override
+  String get blockedTitle => 'Blocked people';
+
+  @override
+  String blockedCount(int n) {
+    return '$n blocked';
+  }
+
+  @override
+  String get blockedEmpty => 'You haven\'t blocked anyone.';
+
+  @override
+  String get blockedEmptyHint =>
+      'You can block someone from their flock — they\'ll disappear from your feed.';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get unblockDone => 'Unblocked.';
+
+  @override
   String get identityVerified => 'Identity verified';
 
   @override
@@ -311,10 +336,16 @@ class AppL10nEn extends AppL10n {
   String get password => 'Password';
 
   @override
+  String get passwordConfirm => 'Confirm password';
+
+  @override
   String get emailHint => 'you@example.com';
 
   @override
   String get passwordHint => 'At least 6 characters';
+
+  @override
+  String get passwordConfirmHint => 'Re-enter your password';
 
   @override
   String get signIn => 'Sign in';
@@ -360,6 +391,12 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get errPasswordShort => 'Password must be at least 6 characters';
+
+  @override
+  String get errPasswordConfirmRequired => 'Re-enter your password';
+
+  @override
+  String get errPasswordMismatch => 'Passwords don\'t match';
 
   @override
   String get errInvalidCredentials => 'Wrong email or password';
@@ -616,6 +653,12 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get notifEmpty => 'No notifications yet.';
+
+  @override
+  String get notifAnnouncement => 'Announcement';
+
+  @override
+  String get notifWarning => 'Warning';
 
   @override
   String notifJoined(Object name) {

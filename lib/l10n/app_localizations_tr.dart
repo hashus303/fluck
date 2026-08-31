@@ -103,6 +103,30 @@ class AppL10nTr extends AppL10n {
       'Güven arka planda sessizce çalışır, çıkmak kolay olsun diye.';
 
   @override
+  String get safetyLede => 'Doğrulama durumun ve engellediğin kişiler.';
+
+  @override
+  String get blockedTitle => 'Engellediklerin';
+
+  @override
+  String blockedCount(int n) {
+    return '$n kişi engelli';
+  }
+
+  @override
+  String get blockedEmpty => 'Kimseyi engellemedin.';
+
+  @override
+  String get blockedEmptyHint =>
+      'Rahatsız eden birini flock\'undan engelleyebilirsin — akışından kaybolur.';
+
+  @override
+  String get unblock => 'Engeli kaldır';
+
+  @override
+  String get unblockDone => 'Engel kaldırıldı.';
+
+  @override
   String get identityVerified => 'Kimlik doğrulandı';
 
   @override
@@ -311,10 +335,16 @@ class AppL10nTr extends AppL10n {
   String get password => 'Şifre';
 
   @override
+  String get passwordConfirm => 'Şifre (tekrar)';
+
+  @override
   String get emailHint => 'sen@ornek.com';
 
   @override
   String get passwordHint => 'En az 6 karakter';
+
+  @override
+  String get passwordConfirmHint => 'Şifreni tekrar gir';
 
   @override
   String get signIn => 'Giriş yap';
@@ -360,6 +390,12 @@ class AppL10nTr extends AppL10n {
 
   @override
   String get errPasswordShort => 'Şifre en az 6 karakter olmalı';
+
+  @override
+  String get errPasswordConfirmRequired => 'Şifreni tekrar gir';
+
+  @override
+  String get errPasswordMismatch => 'Şifreler eşleşmiyor';
 
   @override
   String get errInvalidCredentials => 'E-posta veya şifre hatalı';
@@ -617,6 +653,12 @@ class AppL10nTr extends AppL10n {
 
   @override
   String get notifEmpty => 'Henüz bildirim yok.';
+
+  @override
+  String get notifAnnouncement => 'Duyuru';
+
+  @override
+  String get notifWarning => 'Uyarı';
 
   @override
   String notifJoined(Object name) {

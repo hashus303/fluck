@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/firebase_service.dart';
 import '../../../core/services/image_util.dart';
+import '../../../core/services/verification_meta.dart';
 import '../data/selfie_challenge_label.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -161,9 +162,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // ve konsoldaki admin görür). Hata kayıt akışını bozmasın.
       if (_selfie != null) {
         try {
+          final meta = await VerificationMeta.capture();
           await UserProfileRepository.instance.saveVerificationSelfie(
             widget.uid,
             base64Encode(ImageUtil.shrink(_selfie!, maxDim: 480)),
+            meta: meta.toMap(),
           );
         } catch (_) {/* selfie sonra tekrar istenebilir */}
       }

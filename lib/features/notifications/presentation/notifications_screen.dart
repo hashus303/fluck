@@ -63,14 +63,31 @@ class _NotifRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppL10n.of(context);
     final isVerification = n.type == 'verification';
+    final isAnnouncement = n.type == 'announcement';
+    final isWarning = n.type == 'warning';
+    final isJoin = !isVerification && !isAnnouncement && !isWarning;
     final approved = n.status == 'approved';
+
+    final String title = isVerification
+        ? (approved ? t.notifVerifApproved : t.notifVerifRejected)
+        : (isAnnouncement || isWarning)
+            ? n.text
+            : t.notifJoined(n.actorName);
+    final String subtitle = isJoin
+        ? '${n.venue} · ${_ago(t, n.createdAt)}'
+        : isAnnouncement
+            ? '${t.notifAnnouncement} · ${_ago(t, n.createdAt)}'
+            : isWarning
+                ? '${t.notifWarning} · ${_ago(t, n.createdAt)}'
+                : _ago(t, n.createdAt);
+
     return GestureDetector(
-      // Doğrulama bildirimi bir flock'a gitmez.
-      onTap: isVerification
-          ? null
-          : () => Navigator.of(context).push(MaterialPageRoute(
+      // Yalnızca 'join' bir flock'a gider; diğerlerinin hedefi yok.
+      onTap: isJoin
+          ? () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FlockDetailScreen(flockId: n.flockId),
-              )),
+              ))
+          : null,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -78,42 +95,56 @@ class _NotifRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: AppColors.borderSubtle),
         ),
-        child: Row(children: [
-          if (isVerification)
-            Container(
-              width: 42, height: 42,
-              decoration: BoxDecoration(
-                color: approved ? const Color(0xFFE8F7EF) : const Color(0xFFFDECEC),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Icon(approved ? Icons.verified : Icons.error_outline,
-                  size: 22, color: approved ? AppColors.success : AppColors.danger),
-            )
-          else
-            FlockAvatar(name: n.actorName, size: 42),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          _leading(isVerification, isAnnouncement, isWarning, approved),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                  isVerification
-                      ? (approved ? t.notifVerifApproved : t.notifVerifRejected)
-                      : t.notifJoined(n.actorName),
+              Text(title,
+                  maxLines: (isAnnouncement || isWarning) ? 4 : 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppText.body(14, weight: FontWeight.w700, color: AppColors.textStrong)),
               const SizedBox(height: 2),
-              Text(
-                  isVerification
-                      ? _ago(t, n.createdAt)
-                      : '${n.venue} · ${_ago(t, n.createdAt)}',
+              Text(subtitle,
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: AppText.body(12.5, color: AppColors.textMuted)),
             ]),
           ),
-          if (!isVerification) const Icon(Icons.chevron_right, color: AppColors.textFaint),
+          if (isJoin) const Icon(Icons.chevron_right, color: AppColors.textFaint),
         ]),
       ),
     );
   }
+
+  Widget _leading(bool isVerification, bool isAnnouncement, bool isWarning, bool approved) {
+    if (isJoinAvatar(isVerification, isAnnouncement, isWarning)) {
+      return FlockAvatar(name: n.actorName, size: 42);
+    }
+    late final Color bg;
+    late final Color fg;
+    late final IconData icon;
+    if (isVerification) {
+      bg = approved ? const Color(0xFFE8F7EF) : const Color(0xFFFDECEC);
+      fg = approved ? AppColors.success : AppColors.danger;
+      icon = approved ? Icons.verified : Icons.error_outline;
+    } else if (isAnnouncement) {
+      bg = AppColors.coral50;
+      fg = AppColors.brand;
+      icon = Icons.campaign_rounded;
+    } else {
+      bg = const Color(0xFFFFF4E0); // amber soft
+      fg = AppColors.warning;
+      icon = Icons.warning_amber_rounded;
+    }
+    return Container(
+      width: 42, height: 42,
+      decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 22, color: fg),
+    );
+  }
+
+  bool isJoinAvatar(bool v, bool a, bool w) => !v && !a && !w;
 
   String _ago(AppL10n t, DateTime? time) {
     if (time == null) return t.agoNow;

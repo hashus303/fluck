@@ -19,16 +19,19 @@ class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
 
   bool _isSignUp = false;
   bool _loading = false;
   bool _obscure = true;
+  bool _obscureConfirm = true;
   String? _error;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -156,9 +159,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   controller: _passwordCtrl,
                   hint: t.passwordHint,
                   obscureText: _obscure,
-                  textInputAction: TextInputAction.done,
+                  // Kayıtta sıradaki alan onay şifresi → "next"; girişte "done".
+                  textInputAction:
+                      _isSignUp ? TextInputAction.next : TextInputAction.done,
                   prefixIcon: Icons.lock_outline,
-                  onSubmitted: (_) => _submit(),
+                  onSubmitted: _isSignUp ? null : (_) => _submit(),
                   suffix: IconButton(
                     icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                         size: 20, color: AppColors.textFaint),
@@ -171,6 +176,36 @@ class _AuthScreenState extends State<AuthScreen> {
                     return null;
                   },
                 ),
+
+                // Şifre onayı — yalnızca kayıt modunda.
+                if (_isSignUp) ...[
+                  const SizedBox(height: 16),
+                  _FieldLabel(t.passwordConfirm),
+                  _FlockField(
+                    controller: _confirmCtrl,
+                    hint: t.passwordConfirmHint,
+                    obscureText: _obscureConfirm,
+                    textInputAction: TextInputAction.done,
+                    prefixIcon: Icons.lock_outline,
+                    onSubmitted: (_) => _submit(),
+                    suffix: IconButton(
+                      icon: Icon(
+                          _obscureConfirm
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          size: 20,
+                          color: AppColors.textFaint),
+                      onPressed: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                    validator: (v) {
+                      final s = v ?? '';
+                      if (s.isEmpty) return t.errPasswordConfirmRequired;
+                      if (s != _passwordCtrl.text) return t.errPasswordMismatch;
+                      return null;
+                    },
+                  ),
+                ],
 
                 if (_error != null) ...[
                   const SizedBox(height: 14),
@@ -223,6 +258,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         : () => setState(() {
                               _isSignUp = !_isSignUp;
                               _error = null;
+                              _confirmCtrl.clear();
                             }),
                     child: Text(_isSignUp ? t.haveAccountSignIn : t.noAccountSignUp,
                         style: AppText.body(13.5, weight: FontWeight.w700, color: AppColors.brandHover)),

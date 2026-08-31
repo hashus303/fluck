@@ -41,6 +41,30 @@ class ModerationRepository {
     });
   }
 
+  /// Engeli kaldırır (güvenlik sayfasından).
+  Future<void> unblock(String uid, String targetUid) async {
+    final next = {...blocked.value}..remove(targetUid);
+    blocked.value = next; // UI anında tepki versin
+    await _blocksDoc(uid).set({
+      'uids': next.toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Engellenen uid listesini taze çeker (güvenlik sayfası açılışında).
+  Future<List<String>> fetchBlockedUids(String uid) async {
+    try {
+      final snap = await _blocksDoc(uid).get();
+      final uids = List<String>.from(
+          (snap.data()?['uids'] as List? ?? const []).whereType<String>());
+      blocked.value = uids.toSet();
+      _blocksLoaded = true;
+      return uids;
+    } catch (_) {
+      return blocked.value.toList();
+    }
+  }
+
   /// Bu flock engellenen birini içeriyor mu? (host ya da üye)
   bool hidesFlock(String hostUid, List<String> memberUids) {
     final b = blocked.value;
