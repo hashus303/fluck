@@ -41,11 +41,19 @@ class _DateDeckState extends State<DateDeck>
     vsync: this,
     duration: const Duration(milliseconds: 220),
   );
-  Animation<double>? _slide;
+
+  /// Aktif geçişin uçları. Her çağrıda YENİ bir Animation kurup dinleyici
+  /// eklemek dinleyicileri biriktiriyordu; tek dinleyici bu iki değeri okur.
+  double _from = 0, _to = 0;
 
   @override
   void initState() {
     super.initState();
+    _anim.addListener(() {
+      if (!mounted) return;
+      final k = Curves.easeOutCubic.transform(_anim.value);
+      setState(() => _dragX = _from + (_to - _from) * k);
+    });
     _load();
   }
 
@@ -55,14 +63,10 @@ class _DateDeckState extends State<DateDeck>
     super.dispose();
   }
 
-  /// [_dragX]'i hedefe yumuşatarak taşır. Eğri exponential ease-out: hareket
-  /// hızlı başlar, yavaşça oturur.
+  /// [_dragX]'i hedefe yumuşatarak taşır (exponential ease-out).
   void _animateTo(double target, {VoidCallback? onDone}) {
-    _slide = Tween<double>(begin: _dragX, end: target).animate(
-      CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic),
-    )..addListener(() {
-        if (mounted) setState(() => _dragX = _slide!.value);
-      });
+    _from = _dragX;
+    _to = target;
     _anim.forward(from: 0).whenComplete(() {
       if (onDone != null) onDone();
     });
@@ -197,24 +201,34 @@ class _DateDeckState extends State<DateDeck>
           ]),
           const SizedBox(height: 14),
           Expanded(
-            child: Stack(children: [
+            // Kırpma KAPALI: varsayılan Clip.hardEdge kartı kenarda kesiyor,
+            // uçup gitmek yerine "yeniyormuş" gibi görünüyordu.
+            child: Stack(clipBehavior: Clip.none, children: [
               // Arkadaki kart: üstteki kayarken deste hissi versin ve sıradaki
               // kişinin geldiği belli olsun.
               if (_next != null)
                 Positioned.fill(
                   child: Transform.scale(
-                    scale: 0.94 + 0.06 * intent.abs(),
+                    // Dinlenme hâlinde neredeyse tam boyda ve soluk: üstteki
+                    // savrulup yerini aldığında sıçrama olmasın.
+                    scale: 0.97 + 0.03 * intent.abs(),
                     child: Opacity(
-                      opacity: 0.55 + 0.45 * intent.abs(),
+                      opacity: 0.35 + 0.65 * intent.abs(),
                       child: _CardFace(person: _next!, intent: 0),
                     ),
                   ),
                 ),
               Positioned.fill(
                 child: GestureDetector(
-                  onHorizontalDragUpdate: (d) =>
-                      setState(() => _dragX += d.delta.dx),
+                  // Animasyon sürerken parmağı YOK SAY: ikisi birden
+                  // _dragX'i yazınca kart savrulurken geri çekiliyor,
+                  // hareket bozuluyordu.
+                  onHorizontalDragUpdate: (d) {
+                    if (_anim.isAnimating) return;
+                    setState(() => _dragX += d.delta.dx);
+                  },
                   onHorizontalDragEnd: (_) {
+                    if (_anim.isAnimating) return;
                     if (_dragX.abs() > _threshold) {
                       _fling(_dragX > 0);
                     } else {
