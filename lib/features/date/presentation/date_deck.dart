@@ -22,8 +22,7 @@ class DateDeck extends StatefulWidget {
   State<DateDeck> createState() => _DateDeckState();
 }
 
-class _DateDeckState extends State<DateDeck>
-    with SingleTickerProviderStateMixin {
+class _DateDeckState extends State<DateDeck> with TickerProviderStateMixin {
   List<DiscoveryPerson>? _people;
   int _index = 0;
   Object? _error;
@@ -47,6 +46,22 @@ class _DateDeckState extends State<DateDeck>
   double _from = 0, _to = 0;
   Curve _curve = Curves.easeOutCubic;
 
+  /// Arkadaki kartın öne geçişi.
+  ///
+  /// NEDEN: arka kart sürükleme sırasında tam görünür hâle geliyordu. Ekranda
+  /// iki kart olunca öndeki uçup gidince göz geride kalanı takip ediyor ve
+  /// bunu "kart ters yöne kaydı" diye okuyordu. Artık arka kart sürüklemeye
+  /// TEPKİ VERMEZ, sessizce bekler; öne geçtiğinde yerine yumuşakça oturur.
+  late final AnimationController _promote = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 170),
+    value: 1,
+  );
+
+  /// Arka kartın dinlenme hâli.
+  static const _backScale = 0.95;
+  static const _backOpacity = 0.5;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +76,7 @@ class _DateDeckState extends State<DateDeck>
   @override
   void dispose() {
     _anim.dispose();
+    _promote.dispose();
     super.dispose();
   }
 
@@ -147,6 +163,7 @@ class _DateDeckState extends State<DateDeck>
       _index++;
       _dragX = 0; // yeni kart ortada başlasın
     });
+    _promote.forward(from: 0); // arkadaki kart yerine otursun
     _prefetchAhead();
 
     if (liked) {
@@ -228,11 +245,9 @@ class _DateDeckState extends State<DateDeck>
               if (_next != null)
                 Positioned.fill(
                   child: Transform.scale(
-                    // Dinlenme hâlinde neredeyse tam boyda ve soluk: üstteki
-                    // savrulup yerini aldığında sıçrama olmasın.
-                    scale: 0.97 + 0.03 * intent.abs(),
+                    scale: _backScale,
                     child: Opacity(
-                      opacity: 0.35 + 0.65 * intent.abs(),
+                      opacity: _backOpacity,
                       child: _CardFace(person: _next!, intent: 0),
                     ),
                   ),
@@ -254,11 +269,26 @@ class _DateDeckState extends State<DateDeck>
                       _animateTo(0);
                     }
                   },
-                  child: Transform.translate(
-                    offset: Offset(_dragX, 0),
-                    child: Transform.rotate(
-                      angle: intent * 0.08,
-                      child: _CardFace(person: person, intent: intent),
+                  child: AnimatedBuilder(
+                    animation: _promote,
+                    builder: (context, child) {
+                      // Arka kartın bıraktığı yerden tam boya: geçiş
+                      // görünür olsun, sıçrama olmasın.
+                      final k = Curves.easeOutCubic.transform(_promote.value);
+                      // YALNIZ ölçek: opaklığı da canlandırırsak ön kart
+                      // 170 ms boyunca yarı saydam kalır ve arkadaki içinden
+                      // görünür.
+                      return Transform.scale(
+                        scale: _backScale + (1 - _backScale) * k,
+                        child: child,
+                      );
+                    },
+                    child: Transform.translate(
+                      offset: Offset(_dragX, 0),
+                      child: Transform.rotate(
+                        angle: intent * 0.08,
+                        child: _CardFace(person: person, intent: intent),
+                      ),
                     ),
                   ),
                 ),
