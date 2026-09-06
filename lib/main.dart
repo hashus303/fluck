@@ -27,7 +27,9 @@ import 'features/profile/presentation/verification_gate_screen.dart';
 import 'features/home/presentation/map_screen.dart';
 import 'features/invite/presentation/invite_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
+import 'features/date/data/likes_repository.dart';
 import 'features/date/presentation/date_screen.dart';
+import 'features/date/presentation/plus_sheet.dart';
 import 'l10n/app_localizations.dart';
 
 final localeController = LocaleController();
@@ -311,6 +313,8 @@ const double _railBreakpoint = 600;
 class _RootScreenState extends State<RootScreen> {
   int _tab = 0;
 
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
   void _openCreate() {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => InviteScreen(onBack: () => Navigator.pop(context)),
@@ -362,6 +366,11 @@ class _RootScreenState extends State<RootScreen> {
         active: _tab,
         onTap: (i) => setState(() => _tab = i),
         onCreate: _openCreate,
+        likesStream: _uid == null
+            ? null
+            : LikesRepository.instance.incomingCount(_uid!),
+        onOpenPlus:
+            _uid == null ? null : () => PlusSheet.show(context, _uid!),
       ),
     );
   }
@@ -420,7 +429,20 @@ class _FlockNav extends StatelessWidget {
   final int active;
   final ValueChanged<int> onTap;
   final VoidCallback onCreate;
-  const _FlockNav({required this.active, required this.onTap, required this.onCreate});
+
+  /// Gelen beğeni sayısı — Date kalbindeki rozet. Oturum yoksa null.
+  final Stream<int>? likesStream;
+
+  /// Date kalbine basılı tutunca açılan Flock+ paneli.
+  final VoidCallback? onOpenPlus;
+
+  const _FlockNav({
+    required this.active,
+    required this.onTap,
+    required this.onCreate,
+    this.likesStream,
+    this.onOpenPlus,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -442,7 +464,18 @@ class _FlockNav extends StatelessWidget {
             _NavItem(icon: Icons.home_rounded, label: t.navHome, active: active == 0, onTap: () => onTap(0)),
             _NavItem(icon: Icons.map_rounded, label: t.navMap, active: active == 1, onTap: () => onTap(1)),
             Expanded(child: Center(child: _CreateButton(onTap: onCreate))),
-            _NavItem(icon: Icons.favorite_rounded, label: t.navDate, active: active == 2, onTap: () => onTap(2)),
+            // Date kalbi: gelen beğeni rozeti + basılı tutunca Flock+ paneli.
+            // Rozet Tinder'daki "seni beğenenler" göstergesinin işini görür ve
+            // uzun basmayı keşfedilebilir kılar.
+            _NavItem(
+              icon: Icons.favorite_rounded,
+              label: t.navDate,
+              active: active == 2,
+              onTap: () => onTap(2),
+              onLongPress: onOpenPlus,
+              badgeStream: likesStream,
+              longPressHint: t.plusOpenHint,
+            ),
             _NavItem(icon: Icons.person_rounded, label: t.navProfile, active: active == 3, onTap: () => onTap(3)),
           ]),
         ),
@@ -456,21 +489,35 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.label, required this.active, required this.onTap});
+  final VoidCallback? onLongPress;
+  final Stream<int>? badgeStream;
+  final String? longPressHint;
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+    this.onLongPress,
+    this.badgeStream,
+    this.longPressHint,
+  });
 
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.brand : AppColors.textFaint;
     return Expanded(
-      child: InkWell(
+      child: Semantics(
+        hint: longPressHint,
+        child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         // Container barın tamamını kaplar: hem dokunma alanı hem de
         // ERİŞİLEBİLİRLİK DÜĞÜMÜ 64 dp olur. Yalnız Column bırakılırsa düğüm
         // içeriğe (33 dp) küçülür ve TalkBack'te hedef küçülür.
         child: Container(
           alignment: Alignment.center,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 24, color: color),
+          _icon(color),
           const SizedBox(height: 3),
           Text(label,
               maxLines: 1,
@@ -479,6 +526,41 @@ class _NavItem extends StatelessWidget {
           ]),
         ),
       ),
+      ),
+    );
+  }
+
+  /// İkon + (varsa) gelen beğeni rozeti.
+  Widget _icon(Color color) {
+    final base = Icon(icon, size: 24, color: color);
+    final stream = badgeStream;
+    if (stream == null) return base;
+    return StreamBuilder<int>(
+      stream: stream,
+      builder: (context, snap) {
+        final n = snap.data ?? 0;
+        if (n <= 0) return base;
+        return Stack(clipBehavior: Clip.none, children: [
+          base,
+          Positioned(
+            right: -7,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+              decoration: BoxDecoration(
+                color: AppColors.brand,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.surfaceCard, width: 1.5),
+              ),
+              alignment: Alignment.center,
+              child: Text(n > 9 ? '9+' : '$n',
+                  style: AppText.body(9.5,
+                      weight: FontWeight.w800, color: AppColors.onBrand)),
+            ),
+          ),
+        ]);
+      },
     );
   }
 }
