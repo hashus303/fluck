@@ -740,6 +740,43 @@ class AppL10nEn extends AppL10n {
   }
 
   @override
+  String get plusSheetLede => 'Who liked you, and your subscription.';
+
+  @override
+  String get plusAdmirersTitle => 'Liked you';
+
+  @override
+  String get plusAdmirersEmpty =>
+      'No one yet. Keep browsing the deck — anyone who likes you shows up here.';
+
+  @override
+  String get plusAdmirersError =>
+      'Couldn\'t load the list. Check your connection and reopen.';
+
+  @override
+  String get plusLikedYouHint => 'Liked you';
+
+  @override
+  String get plusMutualHint =>
+      'You both liked each other — start a flock and invite them.';
+
+  @override
+  String get plusMutualBadge => 'Mutual';
+
+  @override
+  String get plusLikeBack => 'Like back';
+
+  @override
+  String get plusStatusTitle => 'Your subscription';
+
+  @override
+  String get plusMessagesSoon =>
+      'Messaging isn\'t built yet. For now you meet by inviting someone to your flock.';
+
+  @override
+  String get plusOpenHint => 'Hold the heart';
+
+  @override
   String get errGeneric => 'Something went wrong. Try again.';
 
   @override

@@ -1423,6 +1423,72 @@ abstract class AppL10n {
   /// **'{name} liked you back — start a flock and invite them.'**
   String dateMutual(String name);
 
+  /// No description provided for @plusSheetLede.
+  ///
+  /// In en, this message translates to:
+  /// **'Who liked you, and your subscription.'**
+  String get plusSheetLede;
+
+  /// No description provided for @plusAdmirersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked you'**
+  String get plusAdmirersTitle;
+
+  /// No description provided for @plusAdmirersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one yet. Keep browsing the deck — anyone who likes you shows up here.'**
+  String get plusAdmirersEmpty;
+
+  /// No description provided for @plusAdmirersError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the list. Check your connection and reopen.'**
+  String get plusAdmirersError;
+
+  /// No description provided for @plusLikedYouHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked you'**
+  String get plusLikedYouHint;
+
+  /// No description provided for @plusMutualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You both liked each other — start a flock and invite them.'**
+  String get plusMutualHint;
+
+  /// No description provided for @plusMutualBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Mutual'**
+  String get plusMutualBadge;
+
+  /// No description provided for @plusLikeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Like back'**
+  String get plusLikeBack;
+
+  /// No description provided for @plusStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription'**
+  String get plusStatusTitle;
+
+  /// No description provided for @plusMessagesSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Messaging isn\'t built yet. For now you meet by inviting someone to your flock.'**
+  String get plusMessagesSoon;
+
+  /// No description provided for @plusOpenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the heart'**
+  String get plusOpenHint;
+
   /// No description provided for @errGeneric.
   ///
   /// In en, this message translates to:

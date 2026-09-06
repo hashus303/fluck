@@ -8,6 +8,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../profile/data/user_profile_repository.dart';
 import '../../safety/data/moderation_repository.dart';
 import '../data/discovery_repository.dart';
+import '../data/likes_repository.dart';
+import 'plus_sheet.dart';
 
 /// Date destesi — yakındaki doğrulanmış kişiler.
 ///
@@ -319,12 +321,19 @@ class _DateDeckState extends State<DateDeck> with TickerProviderStateMixin {
         onTap: () => _fling(false),
       ),
       const SizedBox(width: 28),
-      _RoundAction(
-        icon: Icons.favorite_rounded,
-        label: t.dateLike,
-        color: AppColors.brand,
-        filled: true,
-        onTap: () => _fling(true),
+      StreamBuilder<int>(
+        stream: LikesRepository.instance.incomingCount(widget.uid),
+        builder: (context, snap) => _RoundAction(
+          icon: Icons.favorite_rounded,
+          label: t.dateLike,
+          color: AppColors.brand,
+          filled: true,
+          onTap: () => _fling(true),
+          // Uzun basma gizli bir jest; rozet onu keşfedilebilir kılar.
+          onLongPress: () => PlusSheet.show(context, widget.uid),
+          badge: snap.data ?? 0,
+          longPressHint: t.plusOpenHint,
+        ),
       ),
     ]);
   }
@@ -474,19 +483,31 @@ class _RoundAction extends StatelessWidget {
   final Color color;
   final bool filled;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+
+  /// Gelen beğeni sayısı — 0 ise rozet çizilmez.
+  final int badge;
+
+  /// Uzun basmanın ne yaptığı; ekran okuyucuya ve ipucuna gider.
+  final String? longPressHint;
+
   const _RoundAction({
     required this.icon,
     required this.label,
     required this.color,
     this.onTap,
+    this.onLongPress,
+    this.badge = 0,
+    this.longPressHint,
     this.filled = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
+    final button = Semantics(
       button: true,
       label: label,
+      hint: longPressHint,
       child: Material(
         color: filled ? color : AppColors.surfaceCard,
         shape: CircleBorder(
@@ -494,6 +515,7 @@ class _RoundAction extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           child: SizedBox(
             width: 64,
             height: 64,
@@ -503,6 +525,29 @@ class _RoundAction extends StatelessWidget {
         ),
       ),
     );
+    if (badge <= 0) return button;
+    // Rozet, gizli uzun basma jestini keşfedilebilir yapar: sayı görünce
+    // kullanıcı butona dokunmayı dener.
+    return Stack(clipBehavior: Clip.none, children: [
+      button,
+      Positioned(
+        right: -2,
+        top: -2,
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceCard,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.brand, width: 2),
+          ),
+          alignment: Alignment.center,
+          child: Text(badge > 9 ? '9+' : '$badge',
+              style: AppText.body(11,
+                  weight: FontWeight.w800, color: AppColors.brand)),
+        ),
+      ),
+    ]);
   }
 }
 

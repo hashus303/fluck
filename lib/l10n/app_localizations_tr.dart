@@ -740,6 +740,42 @@ class AppL10nTr extends AppL10n {
   }
 
   @override
+  String get plusSheetLede => 'Seni beğenenler ve abonelik durumun.';
+
+  @override
+  String get plusAdmirersTitle => 'Seni beğenenler';
+
+  @override
+  String get plusAdmirersEmpty =>
+      'Henüz kimse beğenmedi. Destede dolaşmaya devam et — seni beğenen olunca burada görünür.';
+
+  @override
+  String get plusAdmirersError =>
+      'Liste yüklenemedi. Bağlantını kontrol edip tekrar aç.';
+
+  @override
+  String get plusLikedYouHint => 'Seni beğendi';
+
+  @override
+  String get plusMutualHint => 'İkiniz de beğendiniz — flock açıp davet et.';
+
+  @override
+  String get plusMutualBadge => 'Karşılıklı';
+
+  @override
+  String get plusLikeBack => 'Karşılık ver';
+
+  @override
+  String get plusStatusTitle => 'Aboneliğin';
+
+  @override
+  String get plusMessagesSoon =>
+      'Mesajlaşma henüz yok. Şimdilik beğendiğin kişiyi flock’una davet ederek tanışıyorsun.';
+
+  @override
+  String get plusOpenHint => 'Kalbe basılı tut';
+
+  @override
   String get errGeneric => 'Bir şeyler ters gitti. Tekrar dene.';
 
   @override
