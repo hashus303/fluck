@@ -280,6 +280,11 @@ class FlockAvatar extends StatelessWidget {
   final String? photoB64;
   const FlockAvatar({super.key, required this.name, this.size = 36, this.photoB64});
 
+  /// Ada göre sabit renk — aynı kişi her yerde aynı rengi alsın diye
+  /// baş harflerle birlikte kart zeminlerinde de kullanılır.
+  static Color hueFor(String name) =>
+      _palette[(name.isEmpty ? 0 : name.codeUnitAt(0)) % _palette.length];
+
   static List<Color> get _palette => [
     AppColors.coral400, AppColors.trust500, AppColors.sky500,
     AppColors.vibeGames, AppColors.vibeFood, AppColors.vibeBar,

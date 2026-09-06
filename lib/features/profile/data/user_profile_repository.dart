@@ -92,6 +92,14 @@ class UserProfileRepository {
   /// ana belgeye düşer (geriye dönük uyumluluk) — o kullanıcı fotoğrafını bir
   /// kez güncelleyince veri yeni yere taşınır.
   final Map<String, String?> _photoCache = {};
+
+  /// Önbellekteki değeri SENKRON döndürür (yoksa null).
+  ///
+  /// [fetchPhotoB64] önbellek dolu olsa bile Future döndürür; FutureBuilder o
+  /// yüzden bir kare boş çizer ve kart 'önce boş gelip sonra dolar'. Bunu
+  /// initialData olarak vermek o kareyi ortadan kaldırır.
+  String? cachedPhoto(String uid) => _photoCache[uid];
+
   Future<String?> fetchPhotoB64(String uid) async {
     if (_photoCache.containsKey(uid)) return _photoCache[uid];
     try {

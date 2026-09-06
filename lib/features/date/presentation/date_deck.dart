@@ -22,19 +22,57 @@ class DateDeck extends StatefulWidget {
   State<DateDeck> createState() => _DateDeckState();
 }
 
-class _DateDeckState extends State<DateDeck> {
+class _DateDeckState extends State<DateDeck>
+    with SingleTickerProviderStateMixin {
   List<DiscoveryPerson>? _people;
   int _index = 0;
-  bool _busy = false;
   Object? _error;
 
   /// Kartın sürüklenme miktarı — hem görsel geri bildirim hem karar eşiği.
   double _dragX = 0;
 
+  /// Kararın verildiği eşik (px). Altında kart yerine döner.
+  static const _threshold = 90.0;
+
+  /// Bırakma anının tek yetkili hareketi: kart ya yerine yaslanır ya da
+  /// ekrandan savrulur. Parmağı kaldırınca kartın ZIPLAMASI destenin
+  /// fiziksel hissini bozuyordu.
+  late final AnimationController _anim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+  Animation<double>? _slide;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  /// [_dragX]'i hedefe yumuşatarak taşır. Eğri exponential ease-out: hareket
+  /// hızlı başlar, yavaşça oturur.
+  void _animateTo(double target, {VoidCallback? onDone}) {
+    _slide = Tween<double>(begin: _dragX, end: target).animate(
+      CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic),
+    )..addListener(() {
+        if (mounted) setState(() => _dragX = _slide!.value);
+      });
+    _anim.forward(from: 0).whenComplete(() {
+      if (onDone != null) onDone();
+    });
+  }
+
+  /// Kartı ekran dışına savurur, sonra kararı uygular.
+  void _fling(bool liked) {
+    if (_anim.isAnimating) return;
+    final w = MediaQuery.sizeOf(context).width;
+    _animateTo(liked ? w * 1.15 : -w * 1.15, onDone: () => _decide(liked));
   }
 
   Future<void> _load() async {
@@ -50,7 +88,10 @@ class _DateDeckState extends State<DateDeck> {
         me: loc.point,
         blocked: ModerationRepository.instance.blocked.value,
       );
-      if (mounted) setState(() => _people = people);
+      if (mounted) {
+        setState(() => _people = people);
+        _prefetchAhead();
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -62,23 +103,49 @@ class _DateDeckState extends State<DateDeck> {
     return list[_index];
   }
 
-  Future<void> _decide(bool liked) async {
+  /// Arkada duran kart — üstteki kayarken altından o görünür.
+  DiscoveryPerson? get _next {
+    final list = _people;
+    if (list == null || _index + 1 >= list.length) return null;
+    return list[_index + 1];
+  }
+
+  /// Karar İYİMSER uygulanır: kart ANINDA geçer, yazma arkada sürer.
+  ///
+  /// Eskiden Firestore turları bitene kadar bekleniyordu — beğeni üç tur
+  /// (swipes yaz, likes yaz, karşılığını oku) yani ~450 ms boş bekleme.
+  /// Kaydırma jestinde bu doğrudan hissedilir. Yazma başarısız olursa
+  /// kaybedilen tek şey bir kaydırma; Firestore çevrimdışı yazmaları zaten
+  /// kuyruğa alır.
+  void _decide(bool liked) {
     final person = _current;
-    if (person == null || _busy) return;
-    setState(() => _busy = true);
-    bool mutual = false;
-    if (liked) {
-      mutual = await DiscoveryRepository.instance.like(widget.uid, person.uid);
-    } else {
-      await DiscoveryRepository.instance.pass(widget.uid, person.uid);
-    }
-    if (!mounted) return;
+    if (person == null) return;
     setState(() {
       _index++;
-      _dragX = 0;
-      _busy = false;
+      _dragX = 0; // yeni kart ortada başlasın
     });
-    if (mutual) _showMutual(person);
+    _prefetchAhead();
+
+    if (liked) {
+      DiscoveryRepository.instance.like(widget.uid, person.uid).then((mutual) {
+        if (mutual && mounted) _showMutual(person);
+      });
+    } else {
+      DiscoveryRepository.instance.pass(widget.uid, person.uid);
+    }
+  }
+
+  /// Sıradaki birkaç kartın fotoğrafını önden çeker.
+  ///
+  /// Fotoğraf ayrı belgede olduğu için kart göründüğü anda istek atılıyordu;
+  /// bu da kartın önce boş gelip sonra dolmasına yol açıyor. Depo uid'e göre
+  /// önbelleklediği için önden çekmek kartı hazır bulur.
+  void _prefetchAhead() {
+    final list = _people;
+    if (list == null) return;
+    for (var i = _index; i < _index + 3 && i < list.length; i++) {
+      UserProfileRepository.instance.fetchPhotoB64(list[i].uid);
+    }
   }
 
   void _showMutual(DiscoveryPerson person) {
@@ -103,8 +170,7 @@ class _DateDeckState extends State<DateDeck> {
       );
     }
     if (_people == null) {
-      return Center(
-          child: CircularProgressIndicator(color: AppColors.brand));
+      return Center(child: CircularProgressIndicator(color: AppColors.brand));
     }
     final person = _current;
     if (person == null) {
@@ -117,6 +183,8 @@ class _DateDeckState extends State<DateDeck> {
       );
     }
 
+    final intent = (_dragX / 120).clamp(-1.0, 1.0);
+
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -128,110 +196,54 @@ class _DateDeckState extends State<DateDeck> {
                 style: AppText.body(13, color: AppColors.textFaint)),
           ]),
           const SizedBox(height: 14),
-          Expanded(child: _card(person)),
+          Expanded(
+            child: Stack(children: [
+              // Arkadaki kart: üstteki kayarken deste hissi versin ve sıradaki
+              // kişinin geldiği belli olsun.
+              if (_next != null)
+                Positioned.fill(
+                  child: Transform.scale(
+                    scale: 0.94 + 0.06 * intent.abs(),
+                    child: Opacity(
+                      opacity: 0.55 + 0.45 * intent.abs(),
+                      child: _CardFace(person: _next!, intent: 0),
+                    ),
+                  ),
+                ),
+              Positioned.fill(
+                child: GestureDetector(
+                  onHorizontalDragUpdate: (d) =>
+                      setState(() => _dragX += d.delta.dx),
+                  onHorizontalDragEnd: (_) {
+                    if (_dragX.abs() > _threshold) {
+                      _fling(_dragX > 0);
+                    } else {
+                      _animateTo(0);
+                    }
+                  },
+                  child: Transform.translate(
+                    offset: Offset(_dragX, 0),
+                    child: Transform.rotate(
+                      angle: intent * 0.08,
+                      child: _CardFace(person: person, intent: intent),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+          ),
           const SizedBox(height: 16),
           _actions(),
+          // Jest ipucu YALNIZCA ilk kartta: kaydırma keşfedilebilir kalsın,
+          // sonra ekranı boşuna işgal etmesin.
+          if (_index == 0) ...[
+            const SizedBox(height: 10),
+            Text(t.dateSwipeHint,
+                style: AppText.body(12, color: AppColors.textFaint)),
+          ],
         ]),
       ),
     );
-  }
-
-  Widget _card(DiscoveryPerson person) {
-    final t = AppL10n.of(context);
-    // Sürükleme yönüne göre hafif dönüş ve renk ipucu.
-    final intent = (_dragX / 120).clamp(-1.0, 1.0);
-    return GestureDetector(
-      onHorizontalDragUpdate: (d) => setState(() => _dragX += d.delta.dx),
-      onHorizontalDragEnd: (_) {
-        if (_dragX.abs() > 90) {
-          _decide(_dragX > 0);
-        } else {
-          setState(() => _dragX = 0);
-        }
-      },
-      child: Transform.translate(
-        offset: Offset(_dragX, 0),
-        child: Transform.rotate(
-          angle: intent * 0.08,
-          child: InkSurface(
-            color: AppColors.surfaceCard,
-            borderColor: intent == 0
-                ? AppColors.borderSubtle
-                : (intent > 0 ? AppColors.success : AppColors.danger),
-            borderWidth: intent == 0 ? 1 : 2,
-            shadow: AppColors.shadowCard,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  // Fotoğraf ana belgeden ayrıldı: yalnızca GÖRÜNEN kartınki
-                  // çekilir. Depo uid'e göre önbelleklediği için geri gelen
-                  // kartlar tekrar istek atmaz.
-                  child: FutureBuilder<String?>(
-                    future: UserProfileRepository.instance
-                        .fetchPhotoB64(person.uid),
-                    builder: (_, snap) => FlockAvatar(
-                        name: person.name, size: 140, photoB64: snap.data),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                    person.age > 0
-                        ? '${person.name}, ${person.age}'
-                        : person.name,
-                    style: AppText.display(24)),
-                const SizedBox(height: 6),
-                Row(children: [
-                  Icon(Icons.verified_rounded,
-                      size: 16, color: AppColors.success),
-                  const SizedBox(width: 5),
-                  Text(t.verified,
-                      style: AppText.body(12.5,
-                          weight: FontWeight.w700,
-                          color: AppColors.success)),
-                  if (person.km != null) ...[
-                    const SizedBox(width: 12),
-                    Icon(Icons.place, size: 15, color: AppColors.textMuted),
-                    const SizedBox(width: 3),
-                    Text(_km(person.km!),
-                        style: AppText.body(12.5, color: AppColors.textMuted)),
-                  ],
-                ]),
-                if (person.interests.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Wrap(spacing: 7, runSpacing: 7, children: [
-                    for (final i in person.interests.take(6))
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 11, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceSunken,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: Text(i,
-                            style: AppText.body(12.5,
-                                weight: FontWeight.w600,
-                                color: AppColors.textBody)),
-                      ),
-                  ]),
-                ],
-                const Spacer(),
-                Text(t.dateSwipeHint,
-                    style: AppText.body(12, color: AppColors.textFaint)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Mesafeyi kaba konumla tutarlı göster: 1 km altı "1 km'den yakın".
-  String _km(double v) {
-    final t = AppL10n.of(context);
-    if (v < 1) return t.dateUnder1Km;
-    return '${v.toStringAsFixed(v < 10 ? 1 : 0)} km';
   }
 
   Widget _actions() {
@@ -241,7 +253,7 @@ class _DateDeckState extends State<DateDeck> {
         icon: Icons.close_rounded,
         label: t.datePass,
         color: AppColors.danger,
-        onTap: _busy ? null : () => _decide(false),
+        onTap: () => _fling(false),
       ),
       const SizedBox(width: 28),
       _RoundAction(
@@ -249,9 +261,147 @@ class _DateDeckState extends State<DateDeck> {
         label: t.dateLike,
         color: AppColors.brand,
         filled: true,
-        onTap: _busy ? null : () => _decide(true),
+        onTap: () => _fling(true),
       ),
     ]);
+  }
+}
+
+/// Kartın yüzü: FOTOĞRAF kartın kendisidir.
+///
+/// Önceki hâlde 140 px'lik bir daire kartın üstünde duruyor, altında büyük bir
+/// boşluk kalıyordu — kart, kendi türünün en güçlü hamlesinden kaçınmıştı.
+/// Bilgi fotoğrafın üstündeki perdeye oturur; rozetler sistemin kendi
+/// [VerifiedBadge] / [FlockBadge] parçalarıdır, bu ekrana özel bir şey icat
+/// edilmedi.
+class _CardFace extends StatelessWidget {
+  final DiscoveryPerson person;
+
+  /// -1 (sola/geç) … +1 (sağa/beğen). Sürükleme geri bildirimi buradan.
+  final double intent;
+
+  const _CardFace({required this.person, required this.intent});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppL10n.of(context);
+    final radius = BorderRadius.circular(AppRadius.card);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: AppColors.shadowCard,
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(fit: StackFit.expand, children: [
+          _photo(),
+          // Perde: fotoğraf ne olursa olsun yazı okunur kalsın. Dekorasyon
+          // değil okunabilirlik aracı — o yüzden yalnızca alt yarıda.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.center,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x00000000), Color(0xD9000000)],
+              ),
+            ),
+          ),
+          Positioned(left: 20, right: 20, bottom: 20, child: _info(t)),
+          if (intent != 0) _stamp(t),
+        ]),
+      ),
+    );
+  }
+
+  /// Fotoğraf yoksa kart kişinin sabit rengiyle dolar ve baş harfleri taşır —
+  /// boşlukta duran bir daire yerine yine dolu bir yüzey.
+  Widget _photo() {
+    return FutureBuilder<String?>(
+      initialData: UserProfileRepository.instance.cachedPhoto(person.uid),
+      future: UserProfileRepository.instance.fetchPhotoB64(person.uid),
+      builder: (context, snap) {
+        final image = AvatarImageCache.of(snap.data);
+        if (image == null) {
+          final initials = person.name
+              .trim()
+              .split(' ')
+              .map((w) => w.isNotEmpty ? w[0] : '')
+              .take(2)
+              .join()
+              .toUpperCase();
+          return ColoredBox(
+            color: FlockAvatar.hueFor(person.name),
+            child: Center(
+              child:
+                  Text(initials, style: AppText.display(88, color: Colors.white)),
+            ),
+          );
+        }
+        return Image(image: image, fit: BoxFit.cover);
+      },
+    );
+  }
+
+  Widget _info(AppL10n t) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          person.age > 0 ? '${person.name}, ${person.age}' : person.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          // Perde her iki şemada da koyu; yazı sıcak kırık beyaz — nötr gri
+          // değil, sistemin koyu şema metin rampasından.
+          style: AppText.display(30, color: AppColors.sand50),
+        ),
+        const SizedBox(height: 10),
+        Wrap(spacing: 7, runSpacing: 7, children: [
+          const VerifiedBadge(),
+          if (person.km != null)
+            FlockBadge(_km(t, person.km!), icon: '📍', tone: BadgeTone.coral),
+          // İki tane: doğrulama ve mesafe kartın taşıdığı asıl bilgi,
+          // ilgi alanları onları bastırmasın.
+          for (final i in person.interests.take(2)) FlockBadge(i),
+        ]),
+      ],
+    );
+  }
+
+  /// Mesafeyi kaba konumla tutarlı göster: 1 km altı "1 km'den yakın".
+  String _km(AppL10n t, double v) =>
+      v < 1 ? t.dateUnder1Km : '${v.toStringAsFixed(v < 10 ? 1 : 0)} km';
+
+  /// Sürükleme damgası — kararın ne olacağını jest tamamlanmadan söyler.
+  /// Türün imza hareketi; kartın tek yetkili anı burası.
+  Widget _stamp(AppL10n t) {
+    final liked = intent > 0;
+    final color = liked ? AppColors.success : AppColors.danger;
+    return Positioned(
+      top: 24,
+      left: liked ? 24 : null,
+      right: liked ? null : 24,
+      child: Opacity(
+        // Eşiğe varmadan okunur olsun: kullanıcı kararı görsün, sonra bıraksın.
+        opacity: (intent.abs() * 1.8).clamp(0.0, 1.0),
+        child: Transform.rotate(
+          angle: liked ? -0.22 : 0.22,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              border: Border.all(color: color, width: 3),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              color: Colors.black.withValues(alpha: 0.35),
+            ),
+            child: Text(
+              (liked ? t.dateLike : t.datePass).toUpperCase(),
+              style: AppText.display(20, color: color),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -284,8 +434,8 @@ class _RoundAction extends StatelessWidget {
           child: SizedBox(
             width: 64,
             height: 64,
-            child: Icon(icon,
-                size: 28, color: filled ? AppColors.onBrand : color),
+            child:
+                Icon(icon, size: 28, color: filled ? AppColors.onBrand : color),
           ),
         ),
       ),
