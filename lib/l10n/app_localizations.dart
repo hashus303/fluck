@@ -1339,6 +1339,90 @@ abstract class AppL10n {
   /// **'Turn everything off and you\'ll still see it in the app.'**
   String get notifAllOffHint;
 
+  /// No description provided for @dateOptInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Date mode'**
+  String get dateOptInTitle;
+
+  /// No description provided for @dateOptInBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on and you appear in the deck too — no browsing without being browsed. Only verified accounts see each other.'**
+  String get dateOptInBody;
+
+  /// No description provided for @dateOptInPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location is rounded to about 1 km; your exact address is never shared. Turn it off and your location is deleted.'**
+  String get dateOptInPrivacy;
+
+  /// No description provided for @dateOptInCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me too'**
+  String get dateOptInCta;
+
+  /// No description provided for @dateOptOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Date mode'**
+  String get dateOptOut;
+
+  /// No description provided for @datePass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get datePass;
+
+  /// No description provided for @dateLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get dateLike;
+
+  /// No description provided for @dateSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe right to like, left to pass'**
+  String get dateSwipeHint;
+
+  /// No description provided for @dateUnder1Km.
+  ///
+  /// In en, this message translates to:
+  /// **'under 1 km'**
+  String get dateUnder1Km;
+
+  /// No description provided for @dateEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s everyone for now'**
+  String get dateEmptyTitle;
+
+  /// No description provided for @dateEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No one new around you right now. More people join every day — check back soon.'**
+  String get dateEmptyBody;
+
+  /// No description provided for @dateDeckRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get dateDeckRefresh;
+
+  /// No description provided for @dateDeckRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the deck.'**
+  String get dateDeckRetry;
+
+  /// No description provided for @dateMutual.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} liked you back — start a flock and invite them.'**
+  String dateMutual(String name);
+
   /// No description provided for @errGeneric.
   ///
   /// In en, this message translates to:

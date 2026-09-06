@@ -693,6 +693,53 @@ class AppL10nTr extends AppL10n {
       'Hepsini kapatırsan uygulamayı açtığında yine de görürsün.';
 
   @override
+  String get dateOptInTitle => 'Date modunu aç';
+
+  @override
+  String get dateOptInBody =>
+      'Açtığında sen de destede görünürsün — sadece bakan olmaz, sen de bakılırsın. Yalnızca doğrulanmış hesaplar birbirini görür.';
+
+  @override
+  String get dateOptInPrivacy =>
+      'Konumun ~1 km yuvarlanarak saklanır, tam adresin asla paylaşılmaz. İstediğin an kapatırsan konumun silinir.';
+
+  @override
+  String get dateOptInCta => 'Beni de göster';
+
+  @override
+  String get dateOptOut => 'Date modundan çık';
+
+  @override
+  String get datePass => 'Geç';
+
+  @override
+  String get dateLike => 'Beğen';
+
+  @override
+  String get dateSwipeHint => 'Sağa kaydır beğen, sola geç';
+
+  @override
+  String get dateUnder1Km => '1 km\'den yakın';
+
+  @override
+  String get dateEmptyTitle => 'Şimdilik bu kadar';
+
+  @override
+  String get dateEmptyBody =>
+      'Çevrende gösterilecek yeni kimse kalmadı. Yakında yeni kişiler katılacak — sonra tekrar bak.';
+
+  @override
+  String get dateDeckRefresh => 'Yenile';
+
+  @override
+  String get dateDeckRetry => 'Deste yüklenemedi.';
+
+  @override
+  String dateMutual(String name) {
+    return '$name de seni beğenmiş — bir flock açıp davet et.';
+  }
+
+  @override
   String get errGeneric => 'Bir şeyler ters gitti. Tekrar dene.';
 
   @override

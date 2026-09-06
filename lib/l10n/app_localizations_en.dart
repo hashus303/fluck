@@ -693,6 +693,53 @@ class AppL10nEn extends AppL10n {
       'Turn everything off and you\'ll still see it in the app.';
 
   @override
+  String get dateOptInTitle => 'Turn on Date mode';
+
+  @override
+  String get dateOptInBody =>
+      'Turn it on and you appear in the deck too — no browsing without being browsed. Only verified accounts see each other.';
+
+  @override
+  String get dateOptInPrivacy =>
+      'Your location is rounded to about 1 km; your exact address is never shared. Turn it off and your location is deleted.';
+
+  @override
+  String get dateOptInCta => 'Show me too';
+
+  @override
+  String get dateOptOut => 'Leave Date mode';
+
+  @override
+  String get datePass => 'Pass';
+
+  @override
+  String get dateLike => 'Like';
+
+  @override
+  String get dateSwipeHint => 'Swipe right to like, left to pass';
+
+  @override
+  String get dateUnder1Km => 'under 1 km';
+
+  @override
+  String get dateEmptyTitle => 'That\'s everyone for now';
+
+  @override
+  String get dateEmptyBody =>
+      'No one new around you right now. More people join every day — check back soon.';
+
+  @override
+  String get dateDeckRefresh => 'Refresh';
+
+  @override
+  String get dateDeckRetry => 'Couldn\'t load the deck.';
+
+  @override
+  String dateMutual(String name) {
+    return '$name liked you back — start a flock and invite them.';
+  }
+
+  @override
   String get errGeneric => 'Something went wrong. Try again.';
 
   @override

@@ -47,6 +47,12 @@ koordinatı flock'a yazılıyor. Ayrıca selfie doğrulaması sırasında konum,
 sahtecilik denetimi için kaydediliyor → **"Dolandırıcılık önleme, güvenlik ve
 uyumluluk"** amacını da işaretle.
 
+**Date modu (Flock+):** kullanıcı açıkça açarsa konumu ~1 km'ye yuvarlanıp
+diğer doğrulanmış kullanıcılara mesafe göstermek için saklanır. Varsayılan
+KAPALI, kapatınca silinir. Bu da "Yaklaşık konum / Uygulama işlevi" altında
+beyan edilir — ayrı bir kalem gerekmez. Kim kimi beğendi bilgisi yalnızca
+iki tarafa açıktır (Firestore kuralıyla zorlanır), üçüncü kişiye kapalıdır.
+
 > "İsteğe bağlı" çünkü kullanıcı izni reddederse uygulama şehir seçimiyle
 > çalışmaya devam eder.
 
