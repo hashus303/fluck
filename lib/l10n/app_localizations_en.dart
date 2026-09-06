@@ -216,6 +216,18 @@ class AppL10nEn extends AppL10n {
   String get whenTwoWeeks => '2 weeks ago';
 
   @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -311,6 +323,180 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get locOpenSettings => 'Open Settings';
+
+  @override
+  String get introSlide1Title => 'Skip the planning.';
+
+  @override
+  String get introSlide1Body =>
+      'Open Flock, see live invites nearby, join a group in one tap — coffee, a walk, a game.';
+
+  @override
+  String get introSlide2Title => 'Can\'t decide? Roll.';
+
+  @override
+  String get introSlide2Body =>
+      'The dice picks a random flock near you. Zero overthinking — just show up.';
+
+  @override
+  String get introSlide3Title => 'Always a group. Verified people.';
+
+  @override
+  String get introSlide3Body =>
+      'Never one-on-one — every flock is 3+ people. Everyone\'s confirmed with a selfie.';
+
+  @override
+  String get introSkip => 'Skip';
+
+  @override
+  String get introNext => 'Next';
+
+  @override
+  String get introStart => 'Get started';
+
+  @override
+  String get navDiscover => 'Discover';
+
+  @override
+  String get discoverTitle => 'Discover';
+
+  @override
+  String get discoverLede => 'What is happening around you right now.';
+
+  @override
+  String get discoverRollTitle => 'Roll the dice';
+
+  @override
+  String get discoverRollBody =>
+      'Let fate pick a flock near you — one tap to join.';
+
+  @override
+  String get discoverDateTitle => 'Date mode';
+
+  @override
+  String get discoverDateBody =>
+      'Swipe through verified people nearby who want to meet.';
+
+  @override
+  String get discoverNearbyTitle => 'People nearby';
+
+  @override
+  String get discoverNearbyBody =>
+      'See verified people around you and invite them to your flock.';
+
+  @override
+  String get discoverByVibe => 'Browse by vibe';
+
+  @override
+  String discoverPulseLive(int n) {
+    return '$n flocks live near you';
+  }
+
+  @override
+  String get discoverPulseNone =>
+      'Nothing live yet — be the first to start one.';
+
+  @override
+  String get discoverStartOne => 'Start a flock';
+
+  @override
+  String get plusBadge => 'Flock+';
+
+  @override
+  String get navDate => 'Date';
+
+  @override
+  String get dateTitle => 'Date mode';
+
+  @override
+  String get dateLede => 'Verified people nearby — invite them to your flock.';
+
+  @override
+  String get dateLockedTitle => 'Discover people, not just flocks';
+
+  @override
+  String get dateLockedBody =>
+      'Browse verified people around you and invite the ones you like to your flock. Every meetup stays a group — 3 people minimum.';
+
+  @override
+  String get dateUnlockCta => 'Unlock with Flock+';
+
+  @override
+  String get dateSoonTitle => 'Your deck is being built';
+
+  @override
+  String get dateSoonBody =>
+      'Browsing opens shortly — as a Flock+ member you get it first.';
+
+  @override
+  String get plusTitle => 'Flock+';
+
+  @override
+  String get plusTagline => 'Meet more people, more often.';
+
+  @override
+  String get plusTrialBadge => 'First 14 days free';
+
+  @override
+  String get plusPriceLine => 'Then ₺99/month. Cancel anytime.';
+
+  @override
+  String get plusFeatureNearbyTitle => 'See who liked you';
+
+  @override
+  String get plusFeatureNearbyBody =>
+      'Find out who wants to flock with you — and invite them back.';
+
+  @override
+  String get plusFeatureDateTitle => 'Date mode';
+
+  @override
+  String get plusFeatureDateBody =>
+      'Browse verified people nearby and invite the ones you like to your flock.';
+
+  @override
+  String get plusFeatureUnlimitedTitle => 'Unlimited flocks + boost';
+
+  @override
+  String get plusFeatureUnlimitedBody =>
+      'Create as many as you like and push yours to the top.';
+
+  @override
+  String get plusFeatureFiltersTitle => 'Advanced filters';
+
+  @override
+  String get plusFeatureFiltersBody =>
+      'Verified-only mode, vibe and distance filters.';
+
+  @override
+  String get plusCta => 'Start free trial';
+
+  @override
+  String get plusHonestNote =>
+      'We remind you 24h before the trial ends — by push and email. One tap to cancel.';
+
+  @override
+  String get plusRestore => 'Restore purchase';
+
+  @override
+  String get plusActiveTitle => 'Flock+ is active';
+
+  @override
+  String plusTrialActiveTitle(int days) {
+    return 'Flock+ trial — $days days left';
+  }
+
+  @override
+  String get plusManage => 'Manage subscription';
+
+  @override
+  String get plusLockedTitle => 'Flock+ feature';
+
+  @override
+  String get plusLockedBody => 'Unlock this with Flock+ — first 14 days free.';
+
+  @override
+  String get plusSoon => 'Subscriptions open soon — you will be first to know.';
 
   @override
   String get authTitle => 'Stop wandering alone.';
@@ -409,6 +595,102 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get errNetwork => 'Network error — check your connection';
+
+  @override
+  String get errGoogleReauth =>
+      'Your Google account couldn’t approve this sign-in. You can sign in with email for now.';
+
+  @override
+  String get errGoogleNoAccount =>
+      'No Google account on this phone. Add one in Settings, or sign in with email.';
+
+  @override
+  String get errGoogleConfig =>
+      'Google sign-in isn\'t available in this build. You can sign in with email for now.';
+
+  @override
+  String get errGoogleInterrupted =>
+      'Google sign-in was interrupted. Check your connection and try again.';
+
+  @override
+  String get errGoogleGeneric =>
+      'Couldn\'t sign in with Google. Try again, or sign in with email.';
+
+  @override
+  String get a11yBack => 'Back';
+
+  @override
+  String get a11yClose => 'Close';
+
+  @override
+  String get a11yShowPassword => 'Show password';
+
+  @override
+  String get a11yHidePassword => 'Hide password';
+
+  @override
+  String get a11yNotifications => 'Notifications';
+
+  @override
+  String a11yUnreadCount(int count) {
+    return '$count unread notifications';
+  }
+
+  @override
+  String get a11yMyLocation => 'Go to my location';
+
+  @override
+  String get a11ySearchPlace => 'Search for a place';
+
+  @override
+  String a11yRateStars(int count) {
+    return 'Rate $count stars';
+  }
+
+  @override
+  String get a11yChangePhoto => 'Change profile photo';
+
+  @override
+  String get a11yPickPhoto => 'Pick a photo';
+
+  @override
+  String a11yAvatarOf(String name) {
+    return '$name\'s profile photo';
+  }
+
+  @override
+  String get a11yAppLogo => 'Flock logo';
+
+  @override
+  String get offlineBanner => 'No internet — check your connection';
+
+  @override
+  String get offlineRetry => 'Retry';
+
+  @override
+  String get notifSection => 'Notifications';
+
+  @override
+  String get notifJoins => 'Flock activity';
+
+  @override
+  String get notifJoinsBody => 'When someone joins your flock';
+
+  @override
+  String get notifAnnouncements => 'Announcements';
+
+  @override
+  String get notifAnnouncementsBody => 'News from the Flock team';
+
+  @override
+  String get notifVerification => 'Verification result';
+
+  @override
+  String get notifVerificationBody => 'When your selfie check is decided';
+
+  @override
+  String get notifAllOffHint =>
+      'Turn everything off and you\'ll still see it in the app.';
 
   @override
   String get errGeneric => 'Something went wrong. Try again.';

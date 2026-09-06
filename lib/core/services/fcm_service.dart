@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
+import 'notification_prefs.dart';
+
 /// FCM push bildirimleri: izin iste, token'ı kullanıcının kaydına yaz, ön-planda
 /// gelen bildirimi snackbar olarak göster.
 ///
@@ -44,6 +46,7 @@ class FcmService {
     if (_uid == uid) return;
     _uid = uid;
     await _write();
+    await NotificationPrefs.instance.load(uid);
   }
 
   Future<void> _write() async {
@@ -63,6 +66,9 @@ class FcmService {
   }
 
   void _onForeground(RemoteMessage msg) {
+    // Kullanıcı bu türü kapattıysa ön planda da gösterme — ayar her yerde
+    // aynı anlama gelsin.
+    if (!NotificationPrefs.instance.allows(msg.data['type'] as String?)) return;
     final n = msg.notification;
     final parts = <String?>[n?.title ?? msg.data['title'], n?.body ?? msg.data['body']]
         .whereType<String>()

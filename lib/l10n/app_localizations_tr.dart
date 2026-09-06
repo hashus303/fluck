@@ -216,6 +216,18 @@ class AppL10nTr extends AppL10n {
   String get whenTwoWeeks => '2 hafta önce';
 
   @override
+  String get theme => 'Tema';
+
+  @override
+  String get themeSystem => 'Sistem';
+
+  @override
+  String get themeLight => 'Açık';
+
+  @override
+  String get themeDark => 'Koyu';
+
+  @override
   String get language => 'Dil';
 
   @override
@@ -310,6 +322,181 @@ class AppL10nTr extends AppL10n {
 
   @override
   String get locOpenSettings => 'Ayarları aç';
+
+  @override
+  String get introSlide1Title => 'Planlama yok.';
+
+  @override
+  String get introSlide1Body =>
+      'Flock\'u aç, yakınındaki canlı davetleri gör, tek dokunuşla bir gruba katıl — kahve, yürüyüş, oyun.';
+
+  @override
+  String get introSlide2Title => 'Seçemiyorsan zar at.';
+
+  @override
+  String get introSlide2Body =>
+      'Zar sana yakın rastgele bir flock seçer. Sıfır düşünce — sadece git.';
+
+  @override
+  String get introSlide3Title => 'Hep grup. Doğrulanmış kişiler.';
+
+  @override
+  String get introSlide3Body =>
+      'Asla bire bir değil — her flock en az 3 kişi. Herkes selfie ile doğrulanır.';
+
+  @override
+  String get introSkip => 'Atla';
+
+  @override
+  String get introNext => 'İleri';
+
+  @override
+  String get introStart => 'Başla';
+
+  @override
+  String get navDiscover => 'Keşfet';
+
+  @override
+  String get discoverTitle => 'Keşfet';
+
+  @override
+  String get discoverLede => 'Şu an çevrende neler oluyor.';
+
+  @override
+  String get discoverRollTitle => 'Şansına bırak';
+
+  @override
+  String get discoverRollBody =>
+      'Kader sana yakın bir flock seçsin — tek dokunuşla katıl.';
+
+  @override
+  String get discoverDateTitle => 'Date modu';
+
+  @override
+  String get discoverDateBody =>
+      'Yakınındaki tanışmak isteyen doğrulanmış kişileri kaydır.';
+
+  @override
+  String get discoverNearbyTitle => 'Yakınındakiler';
+
+  @override
+  String get discoverNearbyBody =>
+      'Çevrendeki doğrulanmış kişileri gör, flock’una davet et.';
+
+  @override
+  String get discoverByVibe => 'Vibe’a göre gez';
+
+  @override
+  String discoverPulseLive(int n) {
+    return 'Yakınında $n flock aktif';
+  }
+
+  @override
+  String get discoverPulseNone => 'Henüz aktif flock yok — ilkini sen başlat.';
+
+  @override
+  String get discoverStartOne => 'Flock başlat';
+
+  @override
+  String get plusBadge => 'Flock+';
+
+  @override
+  String get navDate => 'Date';
+
+  @override
+  String get dateTitle => 'Date modu';
+
+  @override
+  String get dateLede =>
+      'Yakınındaki doğrulanmış kişiler — flock\'una davet et.';
+
+  @override
+  String get dateLockedTitle => 'Sadece flock değil, insan da keşfet';
+
+  @override
+  String get dateLockedBody =>
+      'Çevrendeki doğrulanmış kişilere göz at, beğendiğini flock\'una davet et. Buluşma her zaman grupça — en az 3 kişi.';
+
+  @override
+  String get dateUnlockCta => 'Flock+ ile aç';
+
+  @override
+  String get dateSoonTitle => 'Desten hazırlanıyor';
+
+  @override
+  String get dateSoonBody =>
+      'Yakındaki kişilere göz atma çok yakında açılıyor — Flock+ üyesi olduğun için ilk sen deneyeceksin.';
+
+  @override
+  String get plusTitle => 'Flock+';
+
+  @override
+  String get plusTagline => 'Daha çok insanla, daha sık buluş.';
+
+  @override
+  String get plusTrialBadge => 'İlk 14 gün ücretsiz';
+
+  @override
+  String get plusPriceLine => 'Sonra ₺99/ay. İstediğin an iptal et.';
+
+  @override
+  String get plusFeatureNearbyTitle => 'Seni kim beğendi';
+
+  @override
+  String get plusFeatureNearbyBody =>
+      'Seninle flock kurmak isteyenleri gör — karşılık ver.';
+
+  @override
+  String get plusFeatureDateTitle => 'Date modu';
+
+  @override
+  String get plusFeatureDateBody =>
+      'Yakındaki doğrulanmış kişilere göz at, beğendiğini flock\'una davet et.';
+
+  @override
+  String get plusFeatureUnlimitedTitle => 'Sınırsız flock + boost';
+
+  @override
+  String get plusFeatureUnlimitedBody =>
+      'İstediğin kadar aç, seninkini en üste taşı.';
+
+  @override
+  String get plusFeatureFiltersTitle => 'Gelişmiş filtreler';
+
+  @override
+  String get plusFeatureFiltersBody =>
+      'Sadece-doğrulanmışlar modu, vibe ve mesafe filtreleri.';
+
+  @override
+  String get plusCta => 'Ücretsiz denemeyi başlat';
+
+  @override
+  String get plusHonestNote =>
+      'Deneme bitmeden 24 saat önce push ve e-postayla hatırlatırız. İptal tek dokunuş.';
+
+  @override
+  String get plusRestore => 'Satın alımı geri yükle';
+
+  @override
+  String get plusActiveTitle => 'Flock+ aktif';
+
+  @override
+  String plusTrialActiveTitle(int days) {
+    return 'Flock+ deneme — $days gün kaldı';
+  }
+
+  @override
+  String get plusManage => 'Aboneliği yönet';
+
+  @override
+  String get plusLockedTitle => 'Flock+ özelliği';
+
+  @override
+  String get plusLockedBody => 'Bunu Flock+ ile aç — ilk 14 gün ücretsiz.';
+
+  @override
+  String get plusSoon =>
+      'Abonelikler yakında açılıyor — ilk sen haberdar olacaksın.';
 
   @override
   String get authTitle => 'Tek başına dolaşmayı bırak.';
@@ -408,6 +595,102 @@ class AppL10nTr extends AppL10n {
 
   @override
   String get errNetwork => 'Ağ hatası — bağlantını kontrol et';
+
+  @override
+  String get errGoogleReauth =>
+      'Google hesabın bu girişi onaylayamadı. Şimdilik e-posta ile giriş yapabilirsin.';
+
+  @override
+  String get errGoogleNoAccount =>
+      'Telefonunda ekli Google hesabı yok. Ayarlar\'dan bir hesap ekle ya da e-posta ile giriş yap.';
+
+  @override
+  String get errGoogleConfig =>
+      'Google girişi bu sürümde açılamıyor. Şimdilik e-posta ile giriş yapabilirsin.';
+
+  @override
+  String get errGoogleInterrupted =>
+      'Google girişi yarıda kesildi. Bağlantını kontrol edip tekrar dene.';
+
+  @override
+  String get errGoogleGeneric =>
+      'Google ile giriş yapılamadı. Tekrar dene ya da e-posta ile giriş yap.';
+
+  @override
+  String get a11yBack => 'Geri';
+
+  @override
+  String get a11yClose => 'Kapat';
+
+  @override
+  String get a11yShowPassword => 'Şifreyi göster';
+
+  @override
+  String get a11yHidePassword => 'Şifreyi gizle';
+
+  @override
+  String get a11yNotifications => 'Bildirimler';
+
+  @override
+  String a11yUnreadCount(int count) {
+    return '$count okunmamış bildirim';
+  }
+
+  @override
+  String get a11yMyLocation => 'Konumuma git';
+
+  @override
+  String get a11ySearchPlace => 'Yeri ara';
+
+  @override
+  String a11yRateStars(int count) {
+    return '$count yıldız ver';
+  }
+
+  @override
+  String get a11yChangePhoto => 'Profil fotoğrafını değiştir';
+
+  @override
+  String get a11yPickPhoto => 'Fotoğraf seç';
+
+  @override
+  String a11yAvatarOf(String name) {
+    return '$name profil fotoğrafı';
+  }
+
+  @override
+  String get a11yAppLogo => 'Flock logosu';
+
+  @override
+  String get offlineBanner => 'İnternet yok — bağlantını kontrol et';
+
+  @override
+  String get offlineRetry => 'Yeniden dene';
+
+  @override
+  String get notifSection => 'Bildirimler';
+
+  @override
+  String get notifJoins => 'Flock hareketleri';
+
+  @override
+  String get notifJoinsBody => 'Biri flock\'una katıldığında';
+
+  @override
+  String get notifAnnouncements => 'Duyurular';
+
+  @override
+  String get notifAnnouncementsBody => 'Flock ekibinden haberler';
+
+  @override
+  String get notifVerification => 'Doğrulama sonucu';
+
+  @override
+  String get notifVerificationBody => 'Selfie doğrulaman sonuçlandığında';
+
+  @override
+  String get notifAllOffHint =>
+      'Hepsini kapatırsan uygulamayı açtığında yine de görürsün.';
 
   @override
   String get errGeneric => 'Bir şeyler ters gitti. Tekrar dene.';

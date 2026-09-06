@@ -58,6 +58,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _map(LocationController loc, List<Flock> flocks) {
+    final t = AppL10n.of(context);
     final retina = RetinaMode.isHighDensity(context);
     final selected = _selectedId == null
         ? null
@@ -73,12 +74,12 @@ class _MapScreenState extends State<MapScreen> {
             onTap: (_, _) => setState(() => _selectedId = null),
           ),
           children: [
-            TileLayer(
+            darkMapLayer(TileLayer(
               urlTemplate: MapConfig.urlTemplate(retina: retina),
               userAgentPackageName: MapConfig.userAgentPackageName,
               retinaMode: retina,
               tileBuilder: themedTileBuilder,
-            ),
+            )),
             MarkerLayer(markers: [
               // Kullanıcının konumu
               Marker(
@@ -89,7 +90,7 @@ class _MapScreenState extends State<MapScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.sky500,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3),
+                    border: Border.all(color: AppColors.surfaceCard, width: 3),
                     boxShadow: const [
                       BoxShadow(color: Color(0x552D6BE0), blurRadius: 12),
                     ],
@@ -117,7 +118,10 @@ class _MapScreenState extends State<MapScreen> {
       Positioned(
         right: 14,
         bottom: selected == null ? 24 : 190,
-        child: _GlassIconButton(icon: Icons.my_location, onTap: () => _locateMe(loc)),
+        child: _GlassIconButton(
+            icon: Icons.my_location,
+            label: t.a11yMyLocation,
+            onTap: () => _locateMe(loc)),
       ),
 
       // seçili flock kartı
@@ -165,21 +169,34 @@ class _MapScreenState extends State<MapScreen> {
 
 class _GlassIconButton extends StatelessWidget {
   final IconData icon;
+  final String label;
   final VoidCallback onTap;
-  const _GlassIconButton({required this.icon, required this.onTap});
+  const _GlassIconButton(
+      {required this.icon, required this.label, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 46, height: 46,
+    return Semantics(
+      button: true,
+      label: label,
+      child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.82),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.borderSubtle),
           boxShadow: AppColors.shadowSm,
         ),
-        child: Icon(icon, size: 20, color: AppColors.textBody),
+        child: Material(
+          color: AppColors.surfaceCard.withValues(alpha: 0.88),
+          shape: CircleBorder(side: BorderSide(color: AppColors.borderSubtle)),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            // 48dp — Material'ın en küçük dokunma hedefi.
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Icon(icon, size: 20, color: AppColors.textBody),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -20,7 +20,7 @@ class VibeDot extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: AppColors.surfaceCard,
         shape: BoxShape.circle,
         border: Border.all(color: vibe.color, width: 2),
         boxShadow: AppColors.shadowSm,
@@ -38,7 +38,7 @@ class CountdownPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg = AppColors.coral50, fg = AppColors.brandHover, dot = AppColors.brand;
+    Color bg = AppColors.brandSoft, fg = AppColors.brandHover, dot = AppColors.brand;
     if (minutesLeft <= 10) {
       bg = const Color(0xFFFDECEC);
       fg = AppColors.danger;
@@ -76,13 +76,13 @@ class OsmAttribution extends StatelessWidget {
         margin: const EdgeInsets.all(4),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
+          color: AppColors.surfaceCard.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(MapConfig.attribution,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+            style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
       ),
     );
   }
@@ -105,7 +105,7 @@ class FlockBadge extends StatelessWidget {
         fg = AppColors.success;
         break;
       case BadgeTone.coral:
-        bg = AppColors.coral50;
+        bg = AppColors.brandSoft;
         fg = AppColors.brandHover;
         break;
       case BadgeTone.warning:
@@ -141,6 +141,138 @@ class VerifiedBadge extends StatelessWidget {
 }
 
 /// Baş harfli renkli avatar.
+/// Dokunulabilir yüzey: gölge DIŞTA, dolgu + kenarlık [Material]'da, dalga
+/// [InkWell]'de.
+///
+/// Sıra önemli — InkWell opak bir Container'ın ÜSTÜNE gelmezse dalga arkada
+/// kalır ve hiç görünmez (Flutter'ın klasik tuzağı). Gölge de Material'ın
+/// içine konamayacağı için dışarıda ayrı bir katman.
+class InkSurface extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final Color color;
+  final double radius;
+  final Color? borderColor;
+  final double borderWidth;
+  final List<BoxShadow>? shadow;
+  final EdgeInsetsGeometry padding;
+
+  const InkSurface({
+    super.key,
+    required this.child,
+    required this.color,
+    this.onTap,
+    this.radius = AppRadius.card,
+    this.borderColor,
+    this.borderWidth = 1,
+    this.shadow,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: shadow,
+      ),
+      child: Material(
+        color: color,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius),
+          side: borderColor == null
+              ? BorderSide.none
+              : BorderSide(color: borderColor!, width: borderWidth),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(padding: padding, child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// Görsel boyutu büyütmeden dokunma hedefini Material'ın 48 dp tabanına
+/// çıkarır: çipin çevresine görünmez, dokunuşu yakalayan alan ekler.
+///
+/// Material'ın kuralı görünen kutuyu değil DOKUNMA HEDEFİNİ 48 dp ister; çipi
+/// büyütmek yoğunluğu bozardı (ana sayfada iki çip sırası var). Framework'ün
+/// kendi `MaterialTapTargetSize.padded` davranışının aynısı.
+class TapTarget extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double minSize;
+  const TapTarget({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.minSize = 48,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // InkWell hem 48 dp'lik alanın tamamını dokunulabilir yapar hem de dalgayı
+    // verir; dalga çipin kendisinden bir tık geniş bir hâle olarak çıkar.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        // Dalga çipten bir tık taşar (hedef 48 dp, çip daha kısa); nötr gri
+        // yerine markadan türetilmiş yumuşak bir hâle daha az yabancı durur.
+        splashColor: AppColors.brand.withValues(alpha: 0.10),
+        highlightColor: AppColors.brand.withValues(alpha: 0.05),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: minSize, minHeight: minSize),
+          child: Center(widthFactor: 1, heightFactor: 1, child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// base64 profil fotoğrafları için çözülmüş görsel önbelleği.
+///
+/// PERF: Eskiden [MemoryImage] doğrudan  içinde kuruluyordu. MemoryImage'ın
+/// eşitliği bayt listesinin KİMLİĞİNE baktığından her yeniden çizim yeni bir
+/// örnek üretiyor, Flutter'ın görsel önbelleği ıskalıyor ve JPEG yeniden
+/// çözülüyordu — üstelik avatarların bulunduğu yer en çok kaydırılan yüzey.
+/// Aynı base64 için aynı örneği döndürerek çözümü bir kereye indiriyoruz.
+class AvatarImageCache {
+  AvatarImageCache._();
+
+  /// Fotoğraflar 320px/q72'ye küçültüldüğü için tanesi ~20 KB; 64 giriş ~1-2 MB.
+  static const _maxEntries = 64;
+  static final _entries = <String, MemoryImage>{};
+
+  /// Ölçüm için: gerçekten kaç kez çözüldü / kaç kez önbellekten geldi.
+  static int decodes = 0;
+  static int hits = 0;
+
+  static ImageProvider? of(String? b64) {
+    if (b64 == null || b64.isEmpty) return null;
+    final cached = _entries[b64];
+    if (cached != null) {
+      hits++;
+      // LRU: erişileni sona taşı ki en eski atılsın.
+      _entries.remove(b64);
+      _entries[b64] = cached;
+      return cached;
+    }
+    try {
+      final image = MemoryImage(base64Decode(b64));
+      decodes++;
+      if (_entries.length >= _maxEntries) _entries.remove(_entries.keys.first);
+      _entries[b64] = image;
+      return image;
+    } catch (_) {
+      return null; // bozuk veri — baş harflere düş
+    }
+  }
+}
+
 class FlockAvatar extends StatelessWidget {
   final String name;
   final double size;
@@ -148,19 +280,14 @@ class FlockAvatar extends StatelessWidget {
   final String? photoB64;
   const FlockAvatar({super.key, required this.name, this.size = 36, this.photoB64});
 
-  static const _palette = [
+  static List<Color> get _palette => [
     AppColors.coral400, AppColors.trust500, AppColors.sky500,
     AppColors.vibeGames, AppColors.vibeFood, AppColors.vibeBar,
   ];
 
   @override
   Widget build(BuildContext context) {
-    ImageProvider? image;
-    if (photoB64 != null && photoB64!.isNotEmpty) {
-      try {
-        image = MemoryImage(base64Decode(photoB64!));
-      } catch (_) {/* bozuk veri — baş harflere düş */}
-    }
+    final image = AvatarImageCache.of(photoB64);
     final parts = name.trim().split(' ');
     final initials = parts.map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase();
     final hue = _palette[(name.isEmpty ? 0 : name.codeUnitAt(0)) % _palette.length];
@@ -238,7 +365,7 @@ class FlockButton extends StatelessWidget {
     switch (variant) {
       case FlockBtn.primary:
         bg = AppColors.brand;
-        fg = Colors.white;
+        fg = AppColors.onBrand;
         shadow = AppColors.glowCoral;
         break;
       case FlockBtn.secondary:
@@ -247,12 +374,12 @@ class FlockButton extends StatelessWidget {
         border = Border.all(color: AppColors.borderStrong);
         break;
       case FlockBtn.soft:
-        bg = AppColors.coral50;
+        bg = AppColors.brandSoft;
         fg = AppColors.brandHover;
         break;
       case FlockBtn.danger:
         bg = AppColors.danger;
-        fg = Colors.white;
+        fg = AppColors.onDanger;
         shadow = AppColors.glowDanger;
         break;
     }
@@ -301,17 +428,13 @@ class InviteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = flock.vibe;
     final t = AppL10n.of(context);
-    return GestureDetector(
+    return InkSurface(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.borderSubtle),
-          boxShadow: AppColors.shadowCard,
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      color: AppColors.surfaceCard,
+      borderColor: AppColors.borderSubtle,
+      shadow: AppColors.shadowCard,
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             VibeDot(vibe: v, size: 46),
             const SizedBox(width: 13),
@@ -361,8 +484,7 @@ class InviteCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
           ]),
-        ]),
-      ),
+      ]),
     );
   }
 }

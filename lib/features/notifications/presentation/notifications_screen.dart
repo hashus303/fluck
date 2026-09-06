@@ -31,7 +31,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgPage,
         elevation: 0,
-        leading: const BackButton(color: AppColors.textStrong),
+        leading: BackButton(color: AppColors.textStrong),
         title: Text(t.notifTitle, style: AppText.display(20)),
       ),
       body: StreamBuilder<List<AppNotification>>(
@@ -81,21 +81,18 @@ class _NotifRow extends StatelessWidget {
                 ? '${t.notifWarning} · ${_ago(t, n.createdAt)}'
                 : _ago(t, n.createdAt);
 
-    return GestureDetector(
+    return InkSurface(
       // Yalnızca 'join' bir flock'a gider; diğerlerinin hedefi yok.
       onTap: isJoin
           ? () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FlockDetailScreen(flockId: n.flockId),
               ))
           : null,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceCard,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.borderSubtle),
-        ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      color: AppColors.surfaceCard,
+      radius: AppRadius.md,
+      borderColor: AppColors.borderSubtle,
+      padding: const EdgeInsets.all(14),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           _leading(isVerification, isAnnouncement, isWarning, approved),
           const SizedBox(width: 12),
           Expanded(
@@ -110,9 +107,8 @@ class _NotifRow extends StatelessWidget {
                   style: AppText.body(12.5, color: AppColors.textMuted)),
             ]),
           ),
-          if (isJoin) const Icon(Icons.chevron_right, color: AppColors.textFaint),
-        ]),
-      ),
+          if (isJoin) Icon(Icons.chevron_right, color: AppColors.textFaint),
+      ]),
     );
   }
 
@@ -128,7 +124,7 @@ class _NotifRow extends StatelessWidget {
       fg = approved ? AppColors.success : AppColors.danger;
       icon = approved ? Icons.verified : Icons.error_outline;
     } else if (isAnnouncement) {
-      bg = AppColors.coral50;
+      bg = AppColors.brandSoft;
       fg = AppColors.brand;
       icon = Icons.campaign_rounded;
     } else {

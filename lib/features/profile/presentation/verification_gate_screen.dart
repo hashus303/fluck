@@ -94,7 +94,7 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                 width: 84,
                 height: 84,
                 decoration: BoxDecoration(
-                  color: rejected ? const Color(0xFFFDECEC) : AppColors.coral50,
+                  color: rejected ? AppColors.dangerSoft : AppColors.brandSoft,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -112,7 +112,7 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.coral50,
+                    color: AppColors.brandSoft,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(children: [
@@ -128,7 +128,7 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                 ),
                 const SizedBox(height: 16),
                 _busy
-                    ? const CircularProgressIndicator(color: AppColors.brand)
+                    ? CircularProgressIndicator(color: AppColors.brand)
                     : FlockButton(
                         label: t.verifRetake,
                         full: true,
@@ -137,7 +137,7 @@ class _VerificationGateScreenState extends State<VerificationGateScreen> {
                       ),
               ] else ...[
                 // Beklerken: canlı spinner + takılırsa yeniden gönderme çıkışı.
-                const CircularProgressIndicator(color: AppColors.brand),
+                CircularProgressIndicator(color: AppColors.brand),
                 const SizedBox(height: 14),
                 if (!_busy)
                   TextButton(

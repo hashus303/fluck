@@ -9,17 +9,27 @@ class Vibe {
   final String id;
   final String label;
   final String emoji;
-  final Color color;
-  const Vibe(this.id, this.label, this.emoji, this.color);
+  const Vibe(this.id, this.label, this.emoji);
+
+  /// Renk temaya göre çözülür. Sabit tutulsaydı koyu şemada açık şemanın
+  /// değeri donup kalırdı — bu yüzden alan değil getter.
+  Color get color => switch (id) {
+        'coffee' => AppColors.vibeCoffee,
+        'bar' => AppColors.vibeBar,
+        'walk' => AppColors.vibeWalk,
+        'games' => AppColors.vibeGames,
+        'food' => AppColors.vibeFood,
+        _ => AppColors.vibeMusic,
+      };
 }
 
 const kVibes = <Vibe>[
-  Vibe('coffee', 'Coffee', '☕', AppColors.vibeCoffee),
-  Vibe('bar', 'Bar', '🍸', AppColors.vibeBar),
-  Vibe('walk', 'Walk', '🚶', AppColors.vibeWalk),
-  Vibe('games', 'Games', '🎮', AppColors.vibeGames),
-  Vibe('food', 'Food', '🍜', AppColors.vibeFood),
-  Vibe('music', 'Music', '🎶', AppColors.vibeMusic),
+  Vibe('coffee', 'Coffee', '☕'),
+  Vibe('bar', 'Bar', '🍸'),
+  Vibe('walk', 'Walk', '🚶'),
+  Vibe('games', 'Games', '🎮'),
+  Vibe('food', 'Food', '🍜'),
+  Vibe('music', 'Music', '🎶'),
 ];
 
 Vibe vibeById(String id) =>

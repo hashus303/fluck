@@ -62,7 +62,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
         final doc = snap.data;
         if (doc == null) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
+            return Scaffold(
               backgroundColor: AppColors.bgPage,
               body: Center(child: CircularProgressIndicator(color: AppColors.brand)),
             );
@@ -100,7 +100,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgPage,
       appBar: AppBar(backgroundColor: AppColors.bgPage, elevation: 0,
-          leading: const BackButton(color: AppColors.textStrong)),
+          leading: BackButton(color: AppColors.textStrong)),
       body: Center(child: Text(t.flockClosed, style: AppText.body(15, color: AppColors.textMuted))),
     );
   }
@@ -120,8 +120,9 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
             padding: const EdgeInsets.fromLTRB(8, 8, 20, 4),
             child: Row(children: [
               IconButton(
+                tooltip: t.a11yBack,
                 onPressed: () => Navigator.maybePop(context),
-                icon: const Icon(Icons.arrow_back, color: AppColors.textStrong),
+                icon: Icon(Icons.arrow_back, color: AppColors.textStrong),
               ),
               Expanded(child: Text(t.flockDetails, style: AppText.display(20))),
               CountdownPill(minutesLeft: doc.minutesLeft),
@@ -171,7 +172,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
                 ]),
                 const SizedBox(height: 6),
                 Row(children: [
-                  const Icon(Icons.place, size: 16, color: AppColors.brand),
+                  Icon(Icons.place, size: 16, color: AppColors.brand),
                   const SizedBox(width: 4),
                   Text('${distanceLabel(km)}${doc.area.isEmpty ? '' : ' · ${doc.area}'}',
                       style: AppText.body(13.5, color: AppColors.textMuted)),
@@ -210,12 +211,12 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
           // CTA
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.surfaceCard,
               border: Border(top: BorderSide(color: AppColors.borderSubtle)),
             ),
             child: _busy
-                ? const Center(child: Padding(
+                ? Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: CircularProgressIndicator(color: AppColors.brand)))
                 : _cta(t, doc, joined: joined, isHost: isHost),
@@ -277,7 +278,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
           Text(name, style: AppText.body(15, weight: FontWeight.w800)),
           const SizedBox(height: 4),
           ListTile(
-            leading: const Icon(Icons.flag_outlined, color: AppColors.warning),
+            leading: Icon(Icons.flag_outlined, color: AppColors.warning),
             title: Text(t.reportUser, style: AppText.body(15, weight: FontWeight.w600)),
             onTap: () {
               Navigator.pop(ctx);
@@ -285,7 +286,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.block, color: AppColors.danger),
+            leading: Icon(Icons.block, color: AppColors.danger),
             title: Text(t.blockUser, style: AppText.body(15, weight: FontWeight.w600)),
             onTap: () {
               Navigator.pop(ctx);
@@ -341,7 +342,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
           controller: noteCtrl,
           maxLines: 3,
           maxLength: 300,
-          decoration: InputDecoration(hintText: t.reportNoteHint),
+          decoration: InputDecoration(labelText: t.reportNoteHint),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
@@ -378,7 +379,7 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(t.blockUser, style: const TextStyle(color: AppColors.danger)),
+            child: Text(t.blockUser, style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),

@@ -187,7 +187,7 @@ async function setStatus(uid, status, reason) {
   const pbody = status === 'verified'
     ? 'Artık Flock\'a giriş yapabilirsin.'
     : 'Selfie doğrulanamadı — tekrar dene.' + (reason ? ` (${reason})` : '');
-  try { await sendPush(uid, ptitle, pbody); } catch (_) {}
+  try { await sendPush(uid, ptitle, pbody, 'verification'); } catch (_) {}
 }
 /// Kişiyi tekrar 'pending' yapar (yeniden selfie).
 async function setPending(uid) {
@@ -200,12 +200,25 @@ async function setPending(uid) {
 }
 
 // ---------- FCM push ----------
-async function pushTokensFor(uid) {
+async function pushDocFor(uid) {
   try {
     const d = await fb(`${BASE}/users/${uid}/private/push`);
-    const arr = d.fields && d.fields.tokens && d.fields.tokens.arrayValue && d.fields.tokens.arrayValue.values;
-    return (arr || []).map((v) => v.stringValue).filter(Boolean);
-  } catch (_) { return []; }
+    const f = d.fields || {};
+    const arr = f.tokens && f.tokens.arrayValue && f.tokens.arrayValue.values;
+    // Tercih alanı yoksa AÇIK say — eski kullanıcılar sessize düşmesin.
+    const pref = (k) => (f[k] && typeof f[k].booleanValue === 'boolean') ? f[k].booleanValue : true;
+    return {
+      tokens: (arr || []).map((v) => v.stringValue).filter(Boolean),
+      prefs: {
+        join: pref('notifJoins'),
+        announcement: pref('notifAnnouncements'),
+        verification: pref('notifVerification'),
+      },
+    };
+  } catch (_) { return { tokens: [], prefs: { join: true, announcement: true, verification: true } }; }
+}
+async function pushTokensFor(uid) {
+  return (await pushDocFor(uid)).tokens;
 }
 async function removePushToken(uid, tok) {
   try {
@@ -217,9 +230,14 @@ async function removePushToken(uid, tok) {
   } catch (_) {}
 }
 /// Kullanıcının tüm cihazlarına push. Sessiz — token yoksa/başarısızsa akışı bozmaz.
-async function sendPush(uid, title, body) {
-  let tokens = [];
-  try { tokens = await pushTokensFor(uid); } catch (_) {}
+///
+/// `type` kullanıcının bildirim tercihine karşı denetlenir ('join' |
+/// 'announcement' | 'verification'). Kapalıysa hiç gönderilmez — ayarın
+/// uygulamada bir anlamı olsun. Ayrıca istemci aynı türü ön planda da eler.
+async function sendPush(uid, title, body, type) {
+  let tokens = [], prefs = null;
+  try { const d = await pushDocFor(uid); tokens = d.tokens; prefs = d.prefs; } catch (_) {}
+  if (type && prefs && prefs[type] === false) return 0;
   if (!tokens.length) return 0;
   let bearer;
   try { bearer = await fbToken(); } catch (_) { return 0; }
@@ -229,7 +247,7 @@ async function sendPush(uid, title, body) {
       const res = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: { token: t, notification: { title, body }, android: { priority: 'HIGH' } } }),
+        body: JSON.stringify({ message: { token: t, notification: { title, body }, data: type ? { type } : {}, android: { priority: 'HIGH' } } }),
       });
       if (res.ok) { ok++; }
       else {
@@ -431,7 +449,7 @@ async function broadcast(text) {
         type: { stringValue: 'announcement' }, text: { stringValue: text },
         read: { booleanValue: false }, createdAt: { timestampValue: new Date().toISOString() },
       });
-      try { await sendPush(u.id, '📣 Duyuru', text); } catch (_) {}
+      try { await sendPush(u.id, '📣 Duyuru', text, 'announcement'); } catch (_) {}
       ok++;
     } catch (_) {}
   }

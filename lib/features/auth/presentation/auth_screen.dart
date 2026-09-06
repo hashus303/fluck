@@ -50,6 +50,17 @@ class _AuthScreenState extends State<AuthScreen> {
           return t.errEmailInvalid;
         case 'network-request-failed':
           return t.errNetwork;
+        case 'google-account-reauth':
+          return t.errGoogleReauth;
+        case 'google-no-account':
+          return t.errGoogleNoAccount;
+        case 'google-config':
+          return t.errGoogleConfig;
+        case 'google-interrupted':
+          return t.errGoogleInterrupted;
+        case 'google-unknown':
+        case 'google-sign-in-failed':
+          return t.errGoogleGeneric;
         default:
           return e.message ?? t.errGeneric;
       }
@@ -91,9 +102,11 @@ class _AuthScreenState extends State<AuthScreen> {
       // Başarılı: authStateChanges akışı uygulamayı otomatik geçirir.
     } on FirebaseAuthException catch (e) {
       // Kullanıcı akışı iptal ettiyse hata gösterme.
+      // Yalnizca kullanicinin kendi iptali sessiz gecilir. Baska hicbir hata
+      // yutulmaz — aksi halde ekranda hicbir sey olmuyormus gibi gorunuyor.
       const cancelled = {
         'web-context-canceled', 'web-context-cancelled',
-        'popup-closed-by-user', 'canceled', 'cancelled', 'user-cancelled',
+        'popup-closed-by-user', 'user-cancelled',
       };
       if (mounted && !cancelled.contains(e.code)) {
         setState(() => _error = _mapError(t, e));
@@ -126,7 +139,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.asset('assets/icon/icon.png',
-                        width: 64, height: 64, fit: BoxFit.cover),
+                        width: 64, height: 64, fit: BoxFit.cover,
+                        semanticLabel: t.a11yAppLogo),
                   ),
                 ),
                 const SizedBox(height: 22),
@@ -136,9 +150,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: AppText.body(14.5, color: AppColors.textMuted)),
                 const SizedBox(height: 26),
 
-                _FieldLabel(t.email),
                 _FlockField(
                   controller: _emailCtrl,
+                  label: t.email,
                   hint: t.emailHint,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -154,9 +168,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                _FieldLabel(t.password),
                 _FlockField(
                   controller: _passwordCtrl,
+                  label: t.password,
                   hint: t.passwordHint,
                   obscureText: _obscure,
                   // Kayıtta sıradaki alan onay şifresi → "next"; girişte "done".
@@ -165,6 +179,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   prefixIcon: Icons.lock_outline,
                   onSubmitted: _isSignUp ? null : (_) => _submit(),
                   suffix: IconButton(
+                    tooltip: _obscure ? t.a11yShowPassword : t.a11yHidePassword,
                     icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                         size: 20, color: AppColors.textFaint),
                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -180,9 +195,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 // Şifre onayı — yalnızca kayıt modunda.
                 if (_isSignUp) ...[
                   const SizedBox(height: 16),
-                  _FieldLabel(t.passwordConfirm),
                   _FlockField(
                     controller: _confirmCtrl,
+                    label: t.passwordConfirm,
                     hint: t.passwordConfirmHint,
                     obscureText: _obscureConfirm,
                     textInputAction: TextInputAction.done,
@@ -217,7 +232,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Row(children: [
-                      const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+                      Icon(Icons.error_outline, size: 18, color: AppColors.danger),
                       const SizedBox(width: 8),
                       Expanded(child: Text(_error!,
                           style: AppText.body(13, weight: FontWeight.w600, color: AppColors.danger))),
@@ -227,7 +242,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 const SizedBox(height: 24),
                 _loading
-                    ? const Center(child: Padding(
+                    ? Center(child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: CircularProgressIndicator(color: AppColors.brand)))
                     : Column(children: [
@@ -238,14 +253,14 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         const SizedBox(height: 14),
                         Row(children: [
-                          const Expanded(child: Divider(color: AppColors.borderSubtle)),
+                          Expanded(child: Divider(color: AppColors.borderSubtle)),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(t.orDivider,
                                 style: AppText.body(12.5, weight: FontWeight.w600,
                                     color: AppColors.textFaint)),
                           ),
-                          const Expanded(child: Divider(color: AppColors.borderSubtle)),
+                          Expanded(child: Divider(color: AppColors.borderSubtle)),
                         ]),
                         const SizedBox(height: 14),
                         _GoogleButton(label: t.continueWithGoogle, onTap: _googleSignIn),
@@ -293,8 +308,8 @@ class _GoogleButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.borderSubtle, width: 1.5),
+          backgroundColor: AppColors.surfaceCard,
+          side: BorderSide(color: AppColors.borderSubtle, width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -312,19 +327,13 @@ class _GoogleButton extends StatelessWidget {
   }
 }
 
-class _FieldLabel extends StatelessWidget {
-  final String text;
-  const _FieldLabel(this.text);
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 7, left: 2),
-        child: Text(text, style: AppText.body(13, weight: FontWeight.w700, color: AppColors.textBody)),
-      );
-}
-
 class _FlockField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
+  /// Ekranda görünen etiketin aynısı. Flutter, hint'i erişilebilirlik
+  /// etiketi saymaz; görünür etiket de ayrı bir Text olduğu için alana
+  /// bağlanmaz — TalkBack'in okuyacağı adı açıkça vermek gerekir.
+  final String label;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
@@ -336,6 +345,7 @@ class _FlockField extends StatelessWidget {
   const _FlockField({
     required this.controller,
     required this.hint,
+    required this.label,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
@@ -357,6 +367,9 @@ class _FlockField extends StatelessWidget {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       style: AppText.body(15, weight: FontWeight.w600),
       decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AppText.body(14, color: AppColors.textMuted),
+        floatingLabelStyle: AppText.body(13, weight: FontWeight.w700, color: AppColors.brand),
         hintText: hint,
         hintStyle: AppText.body(15, color: AppColors.textFaint),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textFaint) : null,
@@ -366,19 +379,19 @@ class _FlockField extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.borderSubtle),
+          borderSide: BorderSide(color: AppColors.borderSubtle),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.brand, width: 1.5),
+          borderSide: BorderSide(color: AppColors.brand, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.danger),
+          borderSide: BorderSide(color: AppColors.danger),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
+          borderSide: BorderSide(color: AppColors.danger, width: 1.5),
         ),
         errorStyle: AppText.body(12, weight: FontWeight.w600, color: AppColors.danger),
       ),

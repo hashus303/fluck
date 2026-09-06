@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
@@ -71,21 +72,117 @@ class AppText {
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get light {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brand,
-      primary: AppColors.brand,
-      surface: AppColors.bgPage,
+  /// Açık şema — krem sayfa, beyaz kart, derin coral marka.
+  static ThemeData get light => _build(
+        brightness: Brightness.light,
+        primary: AppColors.coral650,
+        onPrimary: AppColors.paper,
+        primaryContainer: AppColors.coral50,
+        onPrimaryContainer: AppColors.coral700,
+        surface: AppColors.cream,
+        surfaceContainer: AppColors.paper,
+        onSurface: AppColors.ink800,
+        onSurfaceVariant: AppColors.ink600,
+        outline: AppColors.ink300,
+        outlineVariant: AppColors.ink200,
+        error: AppColors.red550,
+        onError: AppColors.paper,
+        displayColor: AppColors.ink900,
+      );
+
+  /// Koyu şema — kavrulmuş kahve yüzeyler. Açığın tersi değil: marka
+  /// aydınlanır (coral400) ve üstündeki yazı koyulaşır, Material 3'ün
+  /// primary / on-primary kalıbı gibi.
+  static ThemeData get dark => _build(
+        brightness: Brightness.dark,
+        primary: AppColors.coral400,
+        onPrimary: AppColors.espresso800,
+        primaryContainer: const Color(0xFF33190F),
+        onPrimaryContainer: AppColors.coral200,
+        surface: AppColors.espresso800,
+        surfaceContainer: AppColors.espresso700,
+        onSurface: AppColors.sand100,
+        onSurfaceVariant: AppColors.sand300,
+        outline: AppColors.espresso500,
+        outlineVariant: AppColors.espresso600,
+        error: AppColors.red300,
+        onError: AppColors.espresso800,
+        displayColor: AppColors.sand50,
+      );
+
+  /// Sistem çubuklarının ikon rengi — zeminin tersi olmalı, yoksa
+  /// koyu temada saat ve pil simgeleri kaybolur.
+  static SystemUiOverlayStyle overlay(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          dark ? AppColors.espresso800 : AppColors.paper,
+      systemNavigationBarIconBrightness:
+          dark ? Brightness.light : Brightness.dark,
+    );
+  }
+
+  static ThemeData _build({
+    required Brightness brightness,
+    required Color primary,
+    required Color onPrimary,
+    required Color primaryContainer,
+    required Color onPrimaryContainer,
+    required Color surface,
+    required Color surfaceContainer,
+    required Color onSurface,
+    required Color onSurfaceVariant,
+    required Color outline,
+    required Color outlineVariant,
+    required Color error,
+    required Color onError,
+    required Color displayColor,
+  }) {
+    final scheme = ColorScheme(
+      brightness: brightness,
+      primary: primary,
+      onPrimary: onPrimary,
+      primaryContainer: primaryContainer,
+      onPrimaryContainer: onPrimaryContainer,
+      secondary: AppColors.trust550,
+      onSecondary: AppColors.paper,
+      surface: surface,
+      onSurface: onSurface,
+      surfaceContainer: surfaceContainer,
+      surfaceContainerHighest: surfaceContainer,
+      onSurfaceVariant: onSurfaceVariant,
+      outline: outline,
+      outlineVariant: outlineVariant,
+      error: error,
+      onError: onError,
     );
     return ThemeData(
       useMaterial3: true,
+      brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.bgPage,
+      scaffoldBackgroundColor: surface,
+      canvasColor: surface,
+      dividerColor: outlineVariant,
       textTheme: GoogleFonts.plusJakartaSansTextTheme().apply(
-        bodyColor: AppColors.textBody,
-        displayColor: AppColors.textStrong,
+        bodyColor: onSurface,
+        displayColor: displayColor,
       ),
       splashFactory: InkRipple.splashFactory,
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: brightness == Brightness.dark
+            ? AppColors.espresso700
+            : AppColors.ink900,
+        contentTextStyle: GoogleFonts.plusJakartaSans(
+          color: brightness == Brightness.dark
+              ? AppColors.sand50
+              : AppColors.paper,
+          fontSize: 14,
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }

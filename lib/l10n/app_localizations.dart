@@ -469,6 +469,30 @@ abstract class AppL10n {
   /// **'2 weeks ago'**
   String get whenTwoWeeks;
 
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
@@ -642,6 +666,318 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Open Settings'**
   String get locOpenSettings;
+
+  /// No description provided for @introSlide1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip the planning.'**
+  String get introSlide1Title;
+
+  /// No description provided for @introSlide1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Flock, see live invites nearby, join a group in one tap — coffee, a walk, a game.'**
+  String get introSlide1Body;
+
+  /// No description provided for @introSlide2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t decide? Roll.'**
+  String get introSlide2Title;
+
+  /// No description provided for @introSlide2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'The dice picks a random flock near you. Zero overthinking — just show up.'**
+  String get introSlide2Body;
+
+  /// No description provided for @introSlide3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Always a group. Verified people.'**
+  String get introSlide3Title;
+
+  /// No description provided for @introSlide3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Never one-on-one — every flock is 3+ people. Everyone\'s confirmed with a selfie.'**
+  String get introSlide3Body;
+
+  /// No description provided for @introSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get introSkip;
+
+  /// No description provided for @introNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get introNext;
+
+  /// No description provided for @introStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get introStart;
+
+  /// No description provided for @navDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get navDiscover;
+
+  /// No description provided for @discoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get discoverTitle;
+
+  /// No description provided for @discoverLede.
+  ///
+  /// In en, this message translates to:
+  /// **'What is happening around you right now.'**
+  String get discoverLede;
+
+  /// No description provided for @discoverRollTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll the dice'**
+  String get discoverRollTitle;
+
+  /// No description provided for @discoverRollBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Let fate pick a flock near you — one tap to join.'**
+  String get discoverRollBody;
+
+  /// No description provided for @discoverDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date mode'**
+  String get discoverDateTitle;
+
+  /// No description provided for @discoverDateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe through verified people nearby who want to meet.'**
+  String get discoverDateBody;
+
+  /// No description provided for @discoverNearbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People nearby'**
+  String get discoverNearbyTitle;
+
+  /// No description provided for @discoverNearbyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See verified people around you and invite them to your flock.'**
+  String get discoverNearbyBody;
+
+  /// No description provided for @discoverByVibe.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse by vibe'**
+  String get discoverByVibe;
+
+  /// No description provided for @discoverPulseLive.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} flocks live near you'**
+  String discoverPulseLive(int n);
+
+  /// No description provided for @discoverPulseNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing live yet — be the first to start one.'**
+  String get discoverPulseNone;
+
+  /// No description provided for @discoverStartOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a flock'**
+  String get discoverStartOne;
+
+  /// No description provided for @plusBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock+'**
+  String get plusBadge;
+
+  /// No description provided for @navDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get navDate;
+
+  /// No description provided for @dateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date mode'**
+  String get dateTitle;
+
+  /// No description provided for @dateLede.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified people nearby — invite them to your flock.'**
+  String get dateLede;
+
+  /// No description provided for @dateLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover people, not just flocks'**
+  String get dateLockedTitle;
+
+  /// No description provided for @dateLockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse verified people around you and invite the ones you like to your flock. Every meetup stays a group — 3 people minimum.'**
+  String get dateLockedBody;
+
+  /// No description provided for @dateUnlockCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with Flock+'**
+  String get dateUnlockCta;
+
+  /// No description provided for @dateSoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your deck is being built'**
+  String get dateSoonTitle;
+
+  /// No description provided for @dateSoonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browsing opens shortly — as a Flock+ member you get it first.'**
+  String get dateSoonBody;
+
+  /// No description provided for @plusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock+'**
+  String get plusTitle;
+
+  /// No description provided for @plusTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet more people, more often.'**
+  String get plusTagline;
+
+  /// No description provided for @plusTrialBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'First 14 days free'**
+  String get plusTrialBadge;
+
+  /// No description provided for @plusPriceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Then ₺99/month. Cancel anytime.'**
+  String get plusPriceLine;
+
+  /// No description provided for @plusFeatureNearbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See who liked you'**
+  String get plusFeatureNearbyTitle;
+
+  /// No description provided for @plusFeatureNearbyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Find out who wants to flock with you — and invite them back.'**
+  String get plusFeatureNearbyBody;
+
+  /// No description provided for @plusFeatureDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date mode'**
+  String get plusFeatureDateTitle;
+
+  /// No description provided for @plusFeatureDateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse verified people nearby and invite the ones you like to your flock.'**
+  String get plusFeatureDateBody;
+
+  /// No description provided for @plusFeatureUnlimitedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited flocks + boost'**
+  String get plusFeatureUnlimitedTitle;
+
+  /// No description provided for @plusFeatureUnlimitedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create as many as you like and push yours to the top.'**
+  String get plusFeatureUnlimitedBody;
+
+  /// No description provided for @plusFeatureFiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced filters'**
+  String get plusFeatureFiltersTitle;
+
+  /// No description provided for @plusFeatureFiltersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified-only mode, vibe and distance filters.'**
+  String get plusFeatureFiltersBody;
+
+  /// No description provided for @plusCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Start free trial'**
+  String get plusCta;
+
+  /// No description provided for @plusHonestNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We remind you 24h before the trial ends — by push and email. One tap to cancel.'**
+  String get plusHonestNote;
+
+  /// No description provided for @plusRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get plusRestore;
+
+  /// No description provided for @plusActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock+ is active'**
+  String get plusActiveTitle;
+
+  /// No description provided for @plusTrialActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock+ trial — {days} days left'**
+  String plusTrialActiveTitle(int days);
+
+  /// No description provided for @plusManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get plusManage;
+
+  /// No description provided for @plusLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock+ feature'**
+  String get plusLockedTitle;
+
+  /// No description provided for @plusLockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this with Flock+ — first 14 days free.'**
+  String get plusLockedBody;
+
+  /// No description provided for @plusSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions open soon — you will be first to know.'**
+  String get plusSoon;
 
   /// No description provided for @authTitle.
   ///
@@ -834,6 +1170,174 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Network error — check your connection'**
   String get errNetwork;
+
+  /// No description provided for @errGoogleReauth.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Google account couldn’t approve this sign-in. You can sign in with email for now.'**
+  String get errGoogleReauth;
+
+  /// No description provided for @errGoogleNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No Google account on this phone. Add one in Settings, or sign in with email.'**
+  String get errGoogleNoAccount;
+
+  /// No description provided for @errGoogleConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in isn\'t available in this build. You can sign in with email for now.'**
+  String get errGoogleConfig;
+
+  /// No description provided for @errGoogleInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in was interrupted. Check your connection and try again.'**
+  String get errGoogleInterrupted;
+
+  /// No description provided for @errGoogleGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Google. Try again, or sign in with email.'**
+  String get errGoogleGeneric;
+
+  /// No description provided for @a11yBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get a11yBack;
+
+  /// No description provided for @a11yClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get a11yClose;
+
+  /// No description provided for @a11yShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get a11yShowPassword;
+
+  /// No description provided for @a11yHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get a11yHidePassword;
+
+  /// No description provided for @a11yNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get a11yNotifications;
+
+  /// No description provided for @a11yUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread notifications'**
+  String a11yUnreadCount(int count);
+
+  /// No description provided for @a11yMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to my location'**
+  String get a11yMyLocation;
+
+  /// No description provided for @a11ySearchPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a place'**
+  String get a11ySearchPlace;
+
+  /// No description provided for @a11yRateStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate {count} stars'**
+  String a11yRateStars(int count);
+
+  /// No description provided for @a11yChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change profile photo'**
+  String get a11yChangePhoto;
+
+  /// No description provided for @a11yPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a photo'**
+  String get a11yPickPhoto;
+
+  /// No description provided for @a11yAvatarOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s profile photo'**
+  String a11yAvatarOf(String name);
+
+  /// No description provided for @a11yAppLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock logo'**
+  String get a11yAppLogo;
+
+  /// No description provided for @offlineBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet — check your connection'**
+  String get offlineBanner;
+
+  /// No description provided for @offlineRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get offlineRetry;
+
+  /// No description provided for @notifSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifSection;
+
+  /// No description provided for @notifJoins.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock activity'**
+  String get notifJoins;
+
+  /// No description provided for @notifJoinsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone joins your flock'**
+  String get notifJoinsBody;
+
+  /// No description provided for @notifAnnouncements.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcements'**
+  String get notifAnnouncements;
+
+  /// No description provided for @notifAnnouncementsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'News from the Flock team'**
+  String get notifAnnouncementsBody;
+
+  /// No description provided for @notifVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification result'**
+  String get notifVerification;
+
+  /// No description provided for @notifVerificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When your selfie check is decided'**
+  String get notifVerificationBody;
+
+  /// No description provided for @notifAllOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn everything off and you\'ll still see it in the app.'**
+  String get notifAllOffHint;
 
   /// No description provided for @errGeneric.
   ///

@@ -135,6 +135,16 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // Flock+ abonelik yetkisi (entitlement). İSTEMCİ ASLA YAZAMAZ — sahte
+    // premium imkansiz olsun diye. Yalnizca sunucu (VM/servis hesabi, kurallara
+    // tabi degil) Play purchaseToken dogrulandiktan sonra yazar.
+    // Alanlar: status ("trial"|"active"|"expired"|"canceled"), productId,
+    // trialEndsAt, currentPeriodEnd, updatedAt.
+    match /subscriptions/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
     // Diğer her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;

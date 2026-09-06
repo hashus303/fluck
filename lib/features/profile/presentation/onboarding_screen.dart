@@ -200,8 +200,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: 40,
                 child: _step > 0
                     ? IconButton(
+                        tooltip: t.a11yBack,
                         onPressed: _back,
-                        icon: const Icon(Icons.arrow_back, color: AppColors.textStrong),
+                        icon: Icon(Icons.arrow_back, color: AppColors.textStrong),
                       )
                     : null,
               ),
@@ -233,12 +234,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // footer CTA
           Container(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.surfaceCard,
               border: Border(top: BorderSide(color: AppColors.borderSubtle)),
             ),
             child: _saving
-                ? const Center(child: Padding(
+                ? Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: CircularProgressIndicator(color: AppColors.brand)))
                 : Column(mainAxisSize: MainAxisSize.min, children: [
@@ -346,7 +347,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.coral50,
+                color: AppColors.brandSoft,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -425,18 +426,19 @@ class _Field extends StatelessWidget {
       onChanged: onChanged,
       style: AppText.body(17, weight: FontWeight.w600),
       decoration: InputDecoration(
-        hintText: hint,
+        // labelText, hintText'in aksine erişilebilirlik adı olarak da geçer.
+        labelText: hint,
         hintStyle: AppText.body(17, color: AppColors.textFaint),
         filled: true,
         fillColor: AppColors.surfaceCard,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.borderSubtle),
+          borderSide: BorderSide(color: AppColors.borderSubtle),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.brand, width: 1.5),
+          borderSide: BorderSide(color: AppColors.brand, width: 1.5),
         ),
       ),
     );
@@ -450,7 +452,7 @@ class _InterestChip extends StatelessWidget {
   const _InterestChip({required this.label, required this.emoji, required this.selected, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapTarget(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
@@ -465,7 +467,7 @@ class _InterestChip extends StatelessWidget {
           const SizedBox(width: 8),
           Text(label,
               style: AppText.body(14, weight: FontWeight.w700,
-                  color: selected ? Colors.white : AppColors.textBody)),
+                  color: selected ? AppColors.onBrand : AppColors.textBody)),
         ]),
       ),
     );
@@ -490,7 +492,10 @@ class _PhotoPicker extends StatelessWidget {
     final radius = shape == BoxShape.circle ? null : BorderRadius.circular(AppRadius.xl);
     return Center(
       child: Column(children: [
-        GestureDetector(
+        Semantics(
+          button: true,
+          label: AppL10n.of(context).a11yPickPhoto,
+          child: GestureDetector(
           onTap: actions.first.onTap,
           child: Container(
             width: 200,
@@ -512,6 +517,7 @@ class _PhotoPicker extends StatelessWidget {
                     color: AppColors.textFaint,
                   )
                 : null,
+          ),
           ),
         ),
         const SizedBox(height: 16),
@@ -543,7 +549,7 @@ class _ProgressBar extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             height: 6,
             decoration: BoxDecoration(
-              color: i < step ? AppColors.brand : AppColors.ink200,
+              color: i < step ? AppColors.brand : AppColors.borderSubtle,
               borderRadius: BorderRadius.circular(AppRadius.pill),
             ),
           ),

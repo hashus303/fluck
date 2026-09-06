@@ -100,35 +100,39 @@ class _LocationPickerState extends State<LocationPicker> {
             decoration: InputDecoration(
               hintText: t.venueSearchHint,
               hintStyle: AppText.body(15, color: AppColors.textFaint),
-              prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textMuted),
+              prefixIcon: Icon(Icons.search, size: 20, color: AppColors.textMuted),
               filled: true,
               fillColor: AppColors.surfaceCard,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: const BorderSide(color: AppColors.borderSubtle),
+                borderSide: BorderSide(color: AppColors.borderSubtle),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: const BorderSide(color: AppColors.brand, width: 1.5),
+                borderSide: BorderSide(color: AppColors.brand, width: 1.5),
               ),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        GestureDetector(
+        Semantics(
+          button: true,
+          label: t.a11ySearchPlace,
+          child: GestureDetector(
           onTap: _searching ? null : _runSearch,
           child: Container(
-            width: 46, height: 46,
+            width: 48, height: 48,
             decoration: BoxDecoration(
               color: AppColors.brand,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: _searching
-                ? const Padding(
-                    padding: EdgeInsets.all(13),
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                ? Padding(
+                    padding: const EdgeInsets.all(13),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onBrand))
+                : Icon(Icons.arrow_forward, color: AppColors.onBrand, size: 20),
+          ),
           ),
         ),
       ]),
@@ -145,7 +149,7 @@ class _LocationPickerState extends State<LocationPicker> {
             for (final r in _results)
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.place, size: 18, color: AppColors.brand),
+                leading: Icon(Icons.place, size: 18, color: AppColors.brand),
                 title: Text(r.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: AppText.body(14, weight: FontWeight.w600)),
                 subtitle: Text(r.shortLabel, maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -173,17 +177,17 @@ class _LocationPickerState extends State<LocationPicker> {
                 ),
               ),
               children: [
-                TileLayer(
+                darkMapLayer(TileLayer(
                   urlTemplate: MapConfig.urlTemplate(retina: RetinaMode.isHighDensity(context)),
                   userAgentPackageName: MapConfig.userAgentPackageName,
                   retinaMode: RetinaMode.isHighDensity(context),
                   tileBuilder: themedTileBuilder,
-                ),
+                )),
                 const OsmAttribution(),
               ],
             ),
             // Sabit merkez pin — harita altında kaydıkça konum değişir.
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 28),
               child: Icon(Icons.location_on, size: 38, color: AppColors.brand),
             ),

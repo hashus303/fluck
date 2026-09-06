@@ -146,15 +146,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                           style: AppText.body(14.5, weight: FontWeight.w700))),
                   for (var s = 1; s <= 5; s++)
-                    GestureDetector(
-                      onTap: () => setSheet(() => given[uid] = s),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 1.5),
-                        child: Icon(
-                            s <= (given[uid] ?? 0)
-                                ? Icons.star_rounded
-                                : Icons.star_border_rounded,
-                            size: 26, color: AppColors.warning),
+                    Semantics(
+                      button: true,
+                      label: t.a11yRateStars(s),
+                      selected: s <= (given[uid] ?? 0),
+                      child: GestureDetector(
+                        onTap: () => setSheet(() => given[uid] = s),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                          child: Icon(
+                              s <= (given[uid] ?? 0)
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              size: 26, color: AppColors.warning),
+                        ),
                       ),
                     ),
                 ]),
@@ -195,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
         stream: FlockRepository.instance.watchActive(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.brand));
+            return Center(child: CircularProgressIndicator(color: AppColors.brand));
           }
           // Engellenen kullanıcıların (host ya da üye) flock'ları gizlenir.
           final docs = (snap.data ?? const <FlockDoc>[])
@@ -233,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Container(width: 7, height: 7, decoration: const BoxDecoration(
+                Container(width: 7, height: 7, decoration: BoxDecoration(
                     color: AppColors.success, shape: BoxShape.circle)),
                 const SizedBox(width: 6),
                 Text(t.flocksLiveNearYou(ranked.length),
@@ -253,18 +258,18 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
             child: Row(children: [
-              const Icon(Icons.location_on_rounded, size: 18, color: AppColors.brand),
+              Icon(Icons.location_on_rounded, size: 18, color: AppColors.brand),
               const SizedBox(width: 5),
               Text(loc.labelResolved ? loc.label : (loc.isGps ? t.locMyLocation : loc.label),
                   style: AppText.body(14, weight: FontWeight.w800, color: AppColors.textStrong)),
               const Spacer(),
-              GestureDetector(
+              TapTarget(
                 onTap: loc.locating ? null : () => _useGps(loc),
                 child: Row(children: [
                   loc.locating
-                      ? const SizedBox(width: 14, height: 14,
+                      ? SizedBox(width: 14, height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brand))
-                      : const Icon(Icons.my_location, size: 16, color: AppColors.brand),
+                      : Icon(Icons.my_location, size: 16, color: AppColors.brand),
                   const SizedBox(width: 5),
                   Text(t.locUseGps,
                       style: AppText.body(12.5, weight: FontWeight.w700, color: AppColors.brand)),
@@ -281,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
                 decoration: BoxDecoration(
-                  color: AppColors.coral50,
+                  color: AppColors.brandSoft,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(children: [
@@ -306,9 +311,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             weight: FontWeight.w800, color: AppColors.brand)),
                   ),
                   IconButton(
+                    tooltip: t.a11yClose,
                     visualDensity: VisualDensity.compact,
                     onPressed: () => _dismissRatePrompt(_toRate.first.id),
-                    icon: const Icon(Icons.close,
+                    icon: Icon(Icons.close,
                         size: 18, color: AppColors.textFaint),
                   ),
                 ]),
@@ -399,25 +405,30 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: NotificationRepository.instance.unreadCount(_myUid!),
       builder: (context, snap) {
         final n = snap.data ?? 0;
-        return GestureDetector(
+        final t = AppL10n.of(context);
+        return Semantics(
+          button: true,
+          label: n > 0 ? t.a11yUnreadCount(n) : t.a11yNotifications,
+          child: TapTarget(
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => NotificationsScreen(uid: _myUid!),
           )),
           child: Stack(clipBehavior: Clip.none, children: [
-            const Icon(Icons.notifications_none_rounded, size: 26, color: AppColors.textStrong),
+            Icon(Icons.notifications_none_rounded, size: 26, color: AppColors.textStrong),
             if (n > 0)
               Positioned(
                 right: -3, top: -3,
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                  decoration: const BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
                   alignment: Alignment.center,
                   child: Text(n > 9 ? '9+' : '$n',
-                      style: AppText.body(10, weight: FontWeight.w800, color: Colors.white)),
+                      style: AppText.body(10, weight: FontWeight.w800, color: AppColors.onBrand)),
                 ),
               ),
           ]),
+          ),
         );
       },
     );
@@ -442,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => StatefulBuilder(
         builder: (sheetCtx, setSheet) => Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.bgPage,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
@@ -560,22 +571,33 @@ class _SurpriseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+    // Degradeli yüzeyde dalga için Ink gerekir: dekorasyonu Material'ın
+    // üstüne boyar, böylece InkWell'in dalgası görünür kalır.
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.ink900, Color(0xFF3A3F52)],
+          gradient: LinearGradient(
+            colors: [AppColors.inverseSurface, AppColors.inverseSurfaceAlt],
           ),
           borderRadius: BorderRadius.circular(AppRadius.pill),
           boxShadow: AppColors.shadowCard,
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Text('🎲', style: TextStyle(fontSize: 17)),
-          const SizedBox(width: 8),
-          Text(label, style: AppText.body(14.5, weight: FontWeight.w800, color: Colors.white)),
-        ]),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Text('🎲', style: TextStyle(fontSize: 17)),
+              const SizedBox(width: 8),
+              Text(label,
+                  style: AppText.body(14.5,
+                      weight: FontWeight.w800,
+                      color: AppColors.onInverseSurface)),
+            ]),
+          ),
+        ),
       ),
     );
   }
@@ -588,18 +610,22 @@ class _RadiusChip extends StatelessWidget {
   const _RadiusChip({required this.label, required this.selected, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapTarget(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.ink900 : AppColors.surfaceCard,
+          color: selected ? AppColors.inverseSurface : AppColors.surfaceCard,
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(color: selected ? AppColors.ink900 : AppColors.borderSubtle, width: 1.5),
+          border: Border.all(
+              color: selected ? AppColors.inverseSurface : AppColors.borderSubtle,
+              width: 1.5),
         ),
         child: Text(label,
             style: AppText.body(12.5, weight: FontWeight.w700,
-                color: selected ? Colors.white : AppColors.textBody)),
+                color: selected
+                    ? AppColors.onInverseSurface
+                    : AppColors.textBody)),
       ),
     );
   }
@@ -612,7 +638,7 @@ class _AllChip extends StatelessWidget {
   const _AllChip({required this.label, required this.selected, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapTarget(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -623,7 +649,7 @@ class _AllChip extends StatelessWidget {
         ),
         child: Text(label,
             style: AppText.body(13, weight: FontWeight.w700,
-                color: selected ? Colors.white : AppColors.textBody)),
+                color: selected ? AppColors.onBrand : AppColors.textBody)),
       ),
     );
   }
@@ -637,7 +663,7 @@ class _VibeChip extends StatelessWidget {
   const _VibeChip({required this.vibe, required this.label, required this.selected, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TapTarget(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
@@ -651,7 +677,7 @@ class _VibeChip extends StatelessWidget {
           const SizedBox(width: 7),
           Text(label,
               style: AppText.body(13, weight: FontWeight.w700,
-                  color: selected ? Colors.white : AppColors.textBody)),
+                  color: selected ? AppColors.onBrand : AppColors.textBody)),
         ]),
       ),
     );

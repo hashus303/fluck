@@ -87,8 +87,9 @@ class _InviteScreenState extends State<InviteScreen> {
             padding: const EdgeInsets.fromLTRB(8, 8, 20, 4),
             child: Row(children: [
               IconButton(
+                tooltip: t.a11yBack,
                 onPressed: widget.onBack ?? () => Navigator.maybePop(context),
-                icon: const Icon(Icons.arrow_back, color: AppColors.textStrong),
+                icon: Icon(Icons.arrow_back, color: AppColors.textStrong),
               ),
               Text(t.startAFlock, style: AppText.display(20)),
             ]),
@@ -101,7 +102,7 @@ class _InviteScreenState extends State<InviteScreen> {
                 const SizedBox(height: 10),
                 Wrap(spacing: 8, runSpacing: 8, children: [
                   for (final v in kVibes)
-                    GestureDetector(
+                    TapTarget(
                       onTap: () => setState(() => _vibe = v.id),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
@@ -116,7 +117,7 @@ class _InviteScreenState extends State<InviteScreen> {
                           const SizedBox(width: 7),
                           Text(vibeLabel(t, v.id),
                               style: AppText.body(13, weight: FontWeight.w700,
-                                  color: _vibe == v.id ? Colors.white : AppColors.textBody)),
+                                  color: _vibe == v.id ? AppColors.onBrand : AppColors.textBody)),
                         ]),
                       ),
                     ),
@@ -131,19 +132,21 @@ class _InviteScreenState extends State<InviteScreen> {
                   onChanged: (_) => setState(() {}),
                   style: AppText.body(15, weight: FontWeight.w600),
                   decoration: InputDecoration(
-                    hintText: t.venueNameHint,
-                    hintStyle: AppText.body(15, color: AppColors.textFaint),
-                    prefixIcon: const Icon(Icons.storefront, size: 20, color: AppColors.textMuted),
+                    labelText: t.venueNameHint,
+                    labelStyle: AppText.body(15, color: AppColors.textFaint),
+                    floatingLabelStyle: AppText.body(13,
+                        weight: FontWeight.w700, color: AppColors.brand),
+                    prefixIcon: Icon(Icons.storefront, size: 20, color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.surfaceCard,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide: const BorderSide(color: AppColors.borderSubtle),
+                      borderSide: BorderSide(color: AppColors.borderSubtle),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide: const BorderSide(color: AppColors.brand, width: 1.5),
+                      borderSide: BorderSide(color: AppColors.brand, width: 1.5),
                     ),
                   ),
                 ),
@@ -161,7 +164,7 @@ class _InviteScreenState extends State<InviteScreen> {
                 if (_area.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Row(children: [
-                    const Icon(Icons.place, size: 15, color: AppColors.brand),
+                    Icon(Icons.place, size: 15, color: AppColors.brand),
                     const SizedBox(width: 5),
                     Expanded(child: Text(_area,
                         style: AppText.body(13, weight: FontWeight.w600, color: AppColors.textMuted))),
@@ -190,7 +193,7 @@ class _InviteScreenState extends State<InviteScreen> {
                 Row(children: [
                   for (final m in _lifetimeOptions) ...[
                     Expanded(
-                      child: GestureDetector(
+                      child: TapTarget(
                         onTap: () => setState(() => _lifetimeMin = m),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -205,7 +208,7 @@ class _InviteScreenState extends State<InviteScreen> {
                           child: Text(
                               m == 30 ? '⚡ ${_lifetimeLabel(t, m)}' : _lifetimeLabel(t, m),
                               style: AppText.body(13, weight: FontWeight.w700,
-                                  color: _lifetimeMin == m ? Colors.white : AppColors.textBody)),
+                                  color: _lifetimeMin == m ? AppColors.onBrand : AppColors.textBody)),
                         ),
                       ),
                     ),
@@ -216,11 +219,11 @@ class _InviteScreenState extends State<InviteScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.coral50,
+                    color: AppColors.brandSoft,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.bolt, color: AppColors.brand, size: 20),
+                    Icon(Icons.bolt, color: AppColors.brand, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(t.expiryNoteFor(_lifetimeLabel(t, _lifetimeMin)),
@@ -234,12 +237,12 @@ class _InviteScreenState extends State<InviteScreen> {
           // footer CTA
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.surfaceCard,
               border: Border(top: BorderSide(color: AppColors.borderSubtle)),
             ),
             child: _posting
-                ? const Center(child: Padding(
+                ? Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: CircularProgressIndicator(color: AppColors.brand)))
                 : FlockButton(
