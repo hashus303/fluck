@@ -43,15 +43,16 @@ class _DateDeckState extends State<DateDeck>
   );
 
   /// Aktif geçişin uçları. Her çağrıda YENİ bir Animation kurup dinleyici
-  /// eklemek dinleyicileri biriktiriyordu; tek dinleyici bu iki değeri okur.
+  /// eklemek dinleyicileri biriktiriyordu; tek dinleyici bu değerleri okur.
   double _from = 0, _to = 0;
+  Curve _curve = Curves.easeOutCubic;
 
   @override
   void initState() {
     super.initState();
     _anim.addListener(() {
       if (!mounted) return;
-      final k = Curves.easeOutCubic.transform(_anim.value);
+      final k = _curve.transform(_anim.value);
       setState(() => _dragX = _from + (_to - _from) * k);
     });
     _load();
@@ -63,10 +64,23 @@ class _DateDeckState extends State<DateDeck>
     super.dispose();
   }
 
-  /// [_dragX]'i hedefe yumuşatarak taşır (exponential ease-out).
-  void _animateTo(double target, {VoidCallback? onDone}) {
+  /// [_dragX]'i hedefe taşır.
+  ///
+  /// EĞRİ İKİ İŞ İÇİN AYRI: yaslanma (ease-out) hızlı başlayıp oturur —
+  /// doğrusu budur. Savurma ise ease-out ile ilk 55 ms'de yolun %58'ini
+  /// alıyordu; göz bunu hareket değil IŞINLANMA olarak görüyor. Atılan bir
+  /// kart sabit hızla gider, o yüzden savurmada doğrusal eğri ve daha uzun
+  /// süre kullanılır.
+  void _animateTo(
+    double target, {
+    Curve curve = Curves.easeOutCubic,
+    int ms = 200,
+    VoidCallback? onDone,
+  }) {
     _from = _dragX;
     _to = target;
+    _curve = curve;
+    _anim.duration = Duration(milliseconds: ms);
     _anim.forward(from: 0).whenComplete(() {
       if (onDone != null) onDone();
     });
@@ -76,7 +90,12 @@ class _DateDeckState extends State<DateDeck>
   void _fling(bool liked) {
     if (_anim.isAnimating) return;
     final w = MediaQuery.sizeOf(context).width;
-    _animateTo(liked ? w * 1.15 : -w * 1.15, onDone: () => _decide(liked));
+    _animateTo(
+      liked ? w * 1.15 : -w * 1.15,
+      curve: Curves.linear,
+      ms: 300,
+      onDone: () => _decide(liked),
+    );
   }
 
   Future<void> _load() async {
