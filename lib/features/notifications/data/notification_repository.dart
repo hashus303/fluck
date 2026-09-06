@@ -76,8 +76,18 @@ class NotificationRepository {
       .snapshots()
       .map((s) => s.docs.map((d) => AppNotification.fromMap(d.id, d.data())).toList());
 
-  Stream<int> unreadCount(String uid) =>
-      _col(uid).where('read', isEqualTo: false).snapshots().map((s) => s.docs.length);
+  /// Zil rozeti için okunmamış sayısı.
+  ///
+  /// Rozet zaten "9+"da doyuyor; saymak için TÜM okunmamış belgeleri canlı
+  /// dinlemenin anlamı yok. 10 ile sınırlıyoruz — gösterilen sayı değişmez,
+  /// dinlenen veri sabit kalır.
+  static const _badgeCap = 10;
+
+  Stream<int> unreadCount(String uid) => _col(uid)
+      .where('read', isEqualTo: false)
+      .limit(_badgeCap)
+      .snapshots()
+      .map((s) => s.docs.length);
 
   Future<void> markAllRead(String uid) async {
     final unread = await _col(uid).where('read', isEqualTo: false).get();

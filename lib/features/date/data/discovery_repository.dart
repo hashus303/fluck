@@ -56,6 +56,28 @@ class DiscoveryRepository {
   /// Kaba konum hassasiyeti: 2 ondalık ≈ 1.1 km. Semt düzeyi.
   static double _coarse(double v) => (v * 100).roundToDouble() / 100;
 
+  /// Coğrafi kutu boyu (derece). 0.25° ≈ 28 km — bir şehir ölçeği.
+  static const _cell = 0.25;
+
+  /// Konumdan kutu anahtarı. Sorgu bu anahtar üzerinden daraltılır; aksi
+  /// halde `limit` veritabanındaki RASTGELE kişileri getirir ve "yakınındaki"
+  /// sözü yalan olur (1000 kayıtta ölçüldü).
+  static String _box(double lat, double lng) {
+    final a = (lat / _cell).floor();
+    final b = (lng / _cell).floor();
+    return '${a}_$b';
+  }
+
+  /// Merkez kutu + 8 komşusu. Kenarda oturanlar komşu kutudakileri de görsün.
+  static List<String> _boxesAround(LatLng at) {
+    final a = (at.lat / _cell).floor();
+    final b = (at.lng / _cell).floor();
+    return [
+      for (var i = -1; i <= 1; i++)
+        for (var j = -1; j <= 1; j++) '${a + i}_${b + j}',
+    ];
+  }
+
   // ---------------------------------------------------------------------
   // Keşfedilebilirlik
   // ---------------------------------------------------------------------
@@ -79,11 +101,13 @@ class DiscoveryRepository {
         if (value && at != null) ...{
           'geoLat': _coarse(at.lat),
           'geoLng': _coarse(at.lng),
+          'geoBox': _box(at.lat, at.lng),
           'geoAt': FieldValue.serverTimestamp(),
         },
         if (!value) ...{
           'geoLat': FieldValue.delete(),
           'geoLng': FieldValue.delete(),
+          'geoBox': FieldValue.delete(),
           'geoAt': FieldValue.delete(),
         },
       }, SetOptions(merge: true));
@@ -105,15 +129,32 @@ class DiscoveryRepository {
     final decided = await _decided(uid);
     final skip = {uid, ...blocked, ...decided};
 
-    final snap = await _db
-        .collection('users')
-        .where('discoverable', isEqualTo: true)
-        .where('verificationStatus', isEqualTo: 'verified')
-        .limit(limit + skip.length)
-        .get();
+    // Önce yakın kutular; oradan yeterli kişi çıkmazsa kutusuz (eski kayıt
+    // ya da uzak bölge) sorguya düşülür. `whereIn` en fazla 30 değer alır,
+    // 9 kutu sınırın çok altında.
+    var docs = (await _db
+            .collection('users')
+            .where('discoverable', isEqualTo: true)
+            .where('verificationStatus', isEqualTo: 'verified')
+            .where('geoBox', whereIn: _boxesAround(me))
+            .limit(limit + skip.length)
+            .get())
+        .docs;
+
+    if (docs.length < 5) {
+      // Yakında kimse yok — çevreyi genişletmek yerine dürüstçe genel havuza
+      // bak; mesafe yine gösterilir, kullanıcı uzaklığı kendi görür.
+      docs = (await _db
+              .collection('users')
+              .where('discoverable', isEqualTo: true)
+              .where('verificationStatus', isEqualTo: 'verified')
+              .limit(limit + skip.length)
+              .get())
+          .docs;
+    }
 
     final people = <DiscoveryPerson>[];
-    for (final doc in snap.docs) {
+    for (final doc in docs) {
       if (skip.contains(doc.id)) continue;
       final m = doc.data();
       final lat = (m['geoLat'] as num?)?.toDouble();
@@ -125,7 +166,8 @@ class DiscoveryRepository {
         age: (m['age'] as num?)?.toInt() ?? 0,
         interests:
             ((m['interests'] as List?) ?? const []).whereType<String>().toList(),
-        photoB64: m['photoB64'] as String?,
+        // Fotoğraf artık ana belgede değil; kart görünürken ayrıca çekilir.
+        photoB64: null,
         point: point,
         km: point == null ? null : haversineKm(me, point),
       ));

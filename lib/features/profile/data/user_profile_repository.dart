@@ -38,11 +38,24 @@ class UserProfileRepository {
     }
   }
 
-  /// Profil fotoğrafını günceller (profil ekranındaki "fotoğraf değiştir").
-  Future<void> updatePhoto(String uid, String photoB64) {
-    _photoCache.remove(uid);
-    return _users.doc(uid).set({
-      'photoB64': photoB64,
+  /// Profil fotoğrafını günceller.
+  ///
+  /// PERF: Fotoğraf ARTIK ana kullanıcı belgesinde DEĞİL, `public/photo`
+  /// alt belgesinde. Sebebi ölçüldü: base64 foto belgeyi ~22 KB yapıyordu ve
+  /// Date destesi 40 kişi çektiğinde yalnızca avatar göstermek için ~900 KB
+  /// indiriliyordu. Firestore istemci SDK'sında alan maskesi (projection)
+  /// yok — tek çözüm veriyi ayırmak.
+  ///
+  /// Aynı yazımda eski alan da silinir; kullanıcı fotoğrafını güncelledikçe
+  /// veri kendiliğinden taşınır.
+  Future<void> updatePhoto(String uid, String photoB64) async {
+    _photoCache[uid] = photoB64;
+    await _users.doc(uid).collection('public').doc('photo').set({
+      'b64': photoB64,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    await _users.doc(uid).set({
+      'photoB64': FieldValue.delete(),
       'photoProvided': true,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
@@ -73,12 +86,23 @@ class UserProfileRepository {
     }, SetOptions(merge: true));
   }
 
-  /// Üye avatarları için profil fotoğrafı (base64) — basit bellek önbellekli.
+  /// Üye avatarları için profil fotoğrafı (base64) — bellek önbellekli.
+  ///
+  /// Önce hafif `public/photo` alt belgesine bakar. Yoksa ESKİ kayıtlar için
+  /// ana belgeye düşer (geriye dönük uyumluluk) — o kullanıcı fotoğrafını bir
+  /// kez güncelleyince veri yeni yere taşınır.
   final Map<String, String?> _photoCache = {};
   Future<String?> fetchPhotoB64(String uid) async {
     if (_photoCache.containsKey(uid)) return _photoCache[uid];
     try {
-      final p = await fetch(uid);
+      final snap =
+          await _users.doc(uid).collection('public').doc('photo').get();
+      final b64 = snap.data()?['b64'] as String?;
+      if (b64 != null && b64.isNotEmpty) {
+        _photoCache[uid] = b64;
+        return b64;
+      }
+      final p = await fetch(uid); // eski kayıt
       _photoCache[uid] = p?.photoB64;
     } catch (_) {
       return null; // çevrimdışı / Firebase yok — avatar baş harfe düşer

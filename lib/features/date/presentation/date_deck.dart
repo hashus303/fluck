@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../profile/data/user_profile_repository.dart';
 import '../../safety/data/moderation_repository.dart';
 import '../data/discovery_repository.dart';
 
@@ -164,8 +165,15 @@ class _DateDeckState extends State<DateDeck> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
-                  child: FlockAvatar(
-                      name: person.name, size: 140, photoB64: person.photoB64),
+                  // Fotoğraf ana belgeden ayrıldı: yalnızca GÖRÜNEN kartınki
+                  // çekilir. Depo uid'e göre önbelleklediği için geri gelen
+                  // kartlar tekrar istek atmaz.
+                  child: FutureBuilder<String?>(
+                    future: UserProfileRepository.instance
+                        .fetchPhotoB64(person.uid),
+                    builder: (_, snap) => FlockAvatar(
+                        name: person.name, size: 140, photoB64: snap.data),
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Text(

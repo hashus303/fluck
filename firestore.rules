@@ -21,6 +21,14 @@ service cloud.firestore {
                         || resource.data.verificationStatus == 'verified');
       allow delete: if request.auth != null && request.auth.uid == userId;
 
+      // Herkese açık ama AYRI tutulan ağır veri (profil fotoğrafı).
+      // Ana belgeden ayrıldı: deste sorgusu 40 kişi çekerken 22 KB'lik
+      // base64'ü de indirmesin diye. Okuma girişe açık, yazma yalnız sahibine.
+      match /public/{docId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+
       // Kilitli özel veriler (doğrulama selfie'si vb.) — yalnızca sahibi
       // yazar/okur; diğer kullanıcılara tamamen kapalı. İnceleme konsoldan.
       match /private/{docId} {

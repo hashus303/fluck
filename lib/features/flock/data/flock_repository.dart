@@ -17,11 +17,19 @@ class FlockRepository {
 
   /// Süresi dolmamış flock'ları canlı dinler (en yeni biten en sonda).
   /// Mesafe filtresi istemci tarafında yapılır (konum cihazda).
+  /// Aktif flock'lar — süresi en yakın bitenden başlayarak.
+  ///
+  /// SINIR ZORUNLU: sınırsız bırakıldığında koleksiyon büyüdükçe istemci
+  /// TÜM aktif flock'ları canlı dinliyordu. Ana sayfa zaten mesafe ve vibe
+  /// ile filtreliyor; 200 kayıt her senaryoyu fazlasıyla besler.
+  static const _activeLimit = 200;
+
   Stream<List<FlockDoc>> watchActive() {
     final now = Timestamp.now();
     return _col
         .where('expiresAt', isGreaterThan: now)
         .orderBy('expiresAt')
+        .limit(_activeLimit)
         .snapshots()
         .map((snap) => snap.docs
             .map((d) => FlockDoc.fromMap(d.id, d.data()))
