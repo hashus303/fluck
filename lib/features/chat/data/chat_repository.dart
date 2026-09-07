@@ -93,6 +93,23 @@ class ChatRepository {
   /// Bir mesajın üst sınırı; kuralda da aynı sayı var.
   static const maxLength = 1000;
 
+  /// Sohbet listesindeki önizleme satırının uzunluğu.
+  ///
+  /// Özet, rozet dinleyicisi her yeni mesajda yeniden indirdiği SICAK veri.
+  /// Tam metni oraya kopyalamak her mesajda 1 KB'lik gereksiz trafik demekti;
+  /// önizleme tek satır olduğu için 120 karakter zaten ekrana sığandan fazla.
+  static const previewLength = 120;
+
+  /// Bu oturumda varlığı kanıtlanmış sohbetler.
+  ///
+  /// [send] eskiden her mesajdan önce "belge var mı" diye OKUYORDU. Bir
+  /// sohbette ilk mesajdan sonrası için o okuma boşa gidiyor; küme onu keser.
+  final Set<String> _ensured = {};
+
+  /// Sohbette mesaj görüldü → belge kesin var. Ekran bunu bildirince ilk
+  /// mesajın öncesindeki okuma da gerekmez.
+  void markExists(String threadId) => _ensured.add(threadId);
+
   CollectionReference<Map<String, dynamic>> get _threads =>
       FirebaseFirestore.instance.collection('threads');
 
@@ -146,13 +163,16 @@ class ChatRepository {
         body.length > maxLength ? body.substring(0, maxLength) : body;
 
     final ref = _threads.doc(threadId);
-    final snap = await ref.get();
-    if (!snap.exists) {
-      await ref.set({
-        ...seed,
-        'seenAt': {from: FieldValue.serverTimestamp()},
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+    if (!_ensured.contains(threadId)) {
+      final snap = await ref.get();
+      if (!snap.exists) {
+        await ref.set({
+          ...seed,
+          'seenAt': {from: FieldValue.serverTimestamp()},
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      _ensured.add(threadId);
     }
 
     await ref.collection('messages').add({
@@ -163,7 +183,9 @@ class ChatRepository {
 
     // Özet + kendi okundu damgam. Gönderen mesajı zaten okumuştur.
     await ref.update({
-      'lastText': clipped,
+      'lastText': clipped.length > previewLength
+          ? clipped.substring(0, previewLength)
+          : clipped,
       'lastFrom': from,
       'lastAt': FieldValue.serverTimestamp(),
       'seenAt.$from': FieldValue.serverTimestamp(),

@@ -224,6 +224,8 @@
     "notifSection": "Bildirimler",
   "notifJoins": "Flock hareketleri",
   "notifJoinsBody": "Biri flock'una katıldığında",
+  "notifMessages": "Mesajlar",
+  "notifMessagesBody": "Sana mesaj geldiğinde",
   "notifAnnouncements": "Duyurular",
   "notifAnnouncementsBody": "Flock ekibinden haberler",
   "notifVerification": "Doğrulama sonucu",

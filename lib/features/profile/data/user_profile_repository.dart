@@ -27,7 +27,7 @@ class UserProfileRepository {
   /// Onboarding sonunda profili kaydeder (merge ile).
   Future<void> save(UserProfile profile) async {
     _photoCache.remove(profile.uid);
-    _nameCache.remove(profile.uid);
+    _cardCache.remove(profile.uid);
     await _users.doc(profile.uid).set({
       ...profile.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -101,22 +101,28 @@ class UserProfileRepository {
   /// initialData olarak vermek o kareyi ortadan kaldırır.
   String? cachedPhoto(String uid) => _photoCache[uid];
 
-  /// Görünen ad önbelleği — fotoğrafla aynı gerekçe.
+  /// BAŞKA kullanıcıların profil önbelleği — fotoğrafla aynı gerekçe.
   ///
-  /// Mesaj kutusu her sohbet güncellemesinde yeniden çiziliyor; `fetch()`
-  /// önbelleksiz olduğu için her çizimde satır başına bir Firestore okuması
-  /// çıkıyordu. Ad nadiren değişir, cepte tutmak doğru takas.
-  final Map<String, String> _nameCache = {};
+  /// Mesaj kutusu her sohbet güncellemesinde yeniden çiziliyor ve "seni
+  /// beğenenler" listesi satır başına bir profil okuyor; `fetch()`
+  /// önbelleksiz olduğu için aynı belge oturum boyunca defalarca iniyordu.
+  /// Ad/yaş nadiren değişir, cepte tutmak doğru takas.
+  ///
+  /// [fetch] BİLEREK önbelleksiz kalıyor: kendi profilini okuyan akışlar
+  /// (onboarding tamamlandı mı) taze veri istiyor.
+  final Map<String, UserProfile?> _cardCache = {};
 
-  String? cachedName(String uid) => _nameCache[uid];
-
-  Future<String> fetchName(String uid) async {
-    final hit = _nameCache[uid];
-    if (hit != null) return hit;
-    final name = (await fetch(uid))?.name ?? '';
-    _nameCache[uid] = name;
-    return name;
+  Future<UserProfile?> fetchCached(String uid) async {
+    if (_cardCache.containsKey(uid)) return _cardCache[uid];
+    final p = await fetch(uid);
+    _cardCache[uid] = p;
+    return p;
   }
+
+  String? cachedName(String uid) => _cardCache[uid]?.name;
+
+  Future<String> fetchName(String uid) async =>
+      (await fetchCached(uid))?.name ?? '';
 
   Future<String?> fetchPhotoB64(String uid) async {
     if (_photoCache.containsKey(uid)) return _photoCache[uid];

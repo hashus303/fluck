@@ -532,6 +532,7 @@ class _NotifSection extends StatelessWidget {
       builder: (context, prefs, _) {
         final rows = <(String, String, String)>[
           ('notifJoins', t.notifJoins, t.notifJoinsBody),
+          ('notifMessages', t.notifMessages, t.notifMessagesBody),
           ('notifAnnouncements', t.notifAnnouncements, t.notifAnnouncementsBody),
           ('notifVerification', t.notifVerification, t.notifVerificationBody),
         ];

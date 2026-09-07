@@ -111,6 +111,19 @@ async function runQuery(structuredQuery) {
   return rows.filter((r) => r.document).map((r) => ({ id: r.document.name.split('/').pop(), f: r.document.fields || {} }));
 }
 
+/// Belgenin TAM yolunu da döndürür. Koleksiyon-grubu sorgularında gerekli:
+/// mesajın hangi sohbete ait olduğu yalnızca yoldan anlaşılır.
+async function runQueryFull(structuredQuery) {
+  const rows = await fb(`${BASE}:runQuery`, { method: 'POST', body: JSON.stringify({ structuredQuery }) });
+  return rows.filter((r) => r.document)
+    .map((r) => ({ name: r.document.name, id: r.document.name.split('/').pop(), f: r.document.fields || {} }));
+}
+
+const tsVal = (f) => (f && f.timestampValue) ? f.timestampValue : null;
+const gtTime = (fieldPath, iso) =>
+  ({ fieldFilter: { field: { fieldPath }, op: 'GREATER_THAN', value: { timestampValue: iso } } });
+const ascBy = (fieldPath) => [{ field: { fieldPath }, direction: 'ASCENDING' }];
+
 const eqStr = (fieldPath, value) => ({ fieldFilter: { field: { fieldPath }, op: 'EQUAL', value: { stringValue: value } } });
 
 async function pendingUsers(limit = 50) {
@@ -213,9 +226,12 @@ async function pushDocFor(uid) {
         join: pref('notifJoins'),
         announcement: pref('notifAnnouncements'),
         verification: pref('notifVerification'),
+        message: pref('notifMessages'),
       },
     };
-  } catch (_) { return { tokens: [], prefs: { join: true, announcement: true, verification: true } }; }
+  } catch (_) {
+    return { tokens: [], prefs: { join: true, announcement: true, verification: true, message: true } };
+  }
 }
 async function pushTokensFor(uid) {
   return (await pushDocFor(uid)).tokens;
@@ -234,7 +250,7 @@ async function removePushToken(uid, tok) {
 /// `type` kullanıcının bildirim tercihine karşı denetlenir ('join' |
 /// 'announcement' | 'verification'). Kapalıysa hiç gönderilmez — ayarın
 /// uygulamada bir anlamı olsun. Ayrıca istemci aynı türü ön planda da eler.
-async function sendPush(uid, title, body, type) {
+async function sendPush(uid, title, body, type, extraData = {}) {
   let tokens = [], prefs = null;
   try { const d = await pushDocFor(uid); tokens = d.tokens; prefs = d.prefs; } catch (_) {}
   if (type && prefs && prefs[type] === false) return 0;
@@ -247,7 +263,7 @@ async function sendPush(uid, title, body, type) {
       const res = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${bearer}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: { token: t, notification: { title, body }, data: type ? { type } : {}, android: { priority: 'HIGH' } } }),
+        body: JSON.stringify({ message: { token: t, notification: { title, body }, data: { ...(type ? { type } : {}), ...extraData }, android: { priority: 'HIGH' } } }),
       });
       if (res.ok) { ok++; }
       else {
@@ -393,24 +409,186 @@ async function checkPendingVerifications() {
     await sendPendingCard(u); cfg.seenVerif.push(u.id); saveCfg();
   }
 }
+/// Şikayetler — su işaretiyle. Eskiden her turda en yeni 30 şikayet
+/// çekiliyordu (25 sn'de 30 okuma = günde ~104 bin); artık sakin turda boş.
 async function checkReports() {
-  const rows = await runQuery({ from: [{ collectionId: 'reports' }], orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }], limit: 30 });
-  for (const r of rows.reverse()) {
-    if (cfg.seenReports.includes(r.id)) continue;
-    await sendReportCard(r); cfg.seenReports.push(r.id); saveCfg();
+  const first = !cfg.reportWatermark;
+  const since = cfg.reportWatermark || new Date(0).toISOString();
+  const rows = await runQuery({
+    from: [{ collectionId: 'reports' }],
+    where: gtTime('createdAt', since),
+    orderBy: ascBy('createdAt'),
+    limit: 30,
+  });
+  for (const r of rows) {
+    if (!cfg.seenReports.includes(r.id)) {
+      await sendReportCard(r);
+      cfg.seenReports.push(r.id);
+      if (cfg.seenReports.length > 500) cfg.seenReports = cfg.seenReports.slice(-500);
+    }
+    cfg.reportWatermark = tsVal(r.f.createdAt) || cfg.reportWatermark;
   }
+  if (first || rows.length) saveCfg();
 }
+/// Yeni üyeler — SU İŞARETİYLE.
+///
+/// MALİYET: eskiden her turda `allUsers()` çağrılıyordu; `pageSize=300` ile
+/// 25 saniyede bir 300 belge = günde ~1 milyon okuma. Artık yalnızca
+/// `updatedAt` su işaretinden yeni olanlar çekiliyor: sakin turda sorgu boş
+/// döner (Firestore boş sonucu 1 okuma sayar).
+///
+/// `updatedAt` profil düzenlemesinde de değişir; ayırt etmeyi `seenUsers`
+/// yapıyor (zaten yapıyordu). `createdAt` alanı şemada yok, eklemek için
+/// istemci tarafında kayıt/düzenleme ayrımı gerekirdi.
 async function checkNewSignups() {
-  const users = await allUsers();
-  if (!cfg.seenUsers) { cfg.seenUsers = users.map((u) => u.id); saveCfg(); return; } // ilk çalıştırma: tohumla, ping yok
-  for (const u of users) {
+  const first = !cfg.userWatermark;
+  const since = cfg.userWatermark || new Date().toISOString();
+  const rows = await runQuery({
+    from: [{ collectionId: 'users' }],
+    where: gtTime('updatedAt', since),
+    orderBy: ascBy('updatedAt'),
+    limit: 20,
+  });
+  if (rows.length) {
+    cfg.userWatermark = tsVal(rows[rows.length - 1].f.updatedAt) || since;
+  } else if (first) {
+    cfg.userWatermark = since;
+  }
+  if (first) { saveCfg(); return; } // ilk çalıştırma: yalnızca tohumla, ping yok
+  cfg.seenUsers = cfg.seenUsers || [];
+  for (const u of rows) {
     if (cfg.seenUsers.includes(u.id)) continue;
-    cfg.seenUsers.push(u.id); cfg.newSinceDigest = (cfg.newSinceDigest || 0) + 1; saveCfg();
+    cfg.seenUsers.push(u.id);
+    if (cfg.seenUsers.length > 500) cfg.seenUsers = cfg.seenUsers.slice(-500);
+    cfg.newSinceDigest = (cfg.newSinceDigest || 0) + 1;
     // pending ise ayrı ping atma — doğrulama kartı zaten geliyor (çift mesaj olmasın).
     if ((val(u.f.verificationStatus) || 'none') === 'pending') continue;
     await tgHtml(`🆕 <b>Yeni üye:</b> ${esc(val(u.f.name) || '(adsız)')} · ${val(u.f.age) || '?'}\n` +
       `${esc(val(u.f.email) || '')}\nDurum: ${val(u.f.verificationStatus) || 'none'}`);
   }
+  saveCfg();
+}
+
+// ---------- yeni mesaj → push ----------
+//
+// NEDEN BURADA: Cloud Functions bu projede hiç açılmamış; tek bir tetikleyici
+// için Blaze + Cloud Build + Artifact Registry açmak yeni bir maliyet yüzeyi
+// demekti. Bot zaten 7/24 dönüyor ve servis hesabı elinde.
+//
+// MALİYET: tur başına TEK koleksiyon-grubu sorgusu; sakin turda boş döner
+// (1 okuma). Mesaj başına ek okuma yalnızca alıcının push belgesi — sohbet
+// bilgisi ve gönderenin adı bellekte önbelleklenir.
+
+/// Bot kapalıyken biriken eski mesajları açılışta yağdırmayalım.
+const MSG_MAX_AGE_MS = 10 * 60 * 1000;
+
+/// Sohbet belgesi önbelleği. Okuduğumuz alanlar (tür, üyeler, flockId)
+/// sohbetin ömrü boyunca DEĞİŞMEZ, o yüzden süresiz tutulabilir.
+const _threadCache = new Map();
+async function threadInfo(threadId) {
+  const hit = _threadCache.get(threadId);
+  if (hit) return hit;
+  try {
+    const d = await fb(`${BASE}/threads/${threadId}`);
+    const f = d.fields || {};
+    const info = {
+      kind: val(f.kind) || 'dm',
+      flockId: val(f.flockId) || '',
+      members: ((f.memberUids && f.memberUids.arrayValue && f.memberUids.arrayValue.values) || [])
+        .map((v) => v.stringValue).filter(Boolean),
+    };
+    if (_threadCache.size > 500) _threadCache.clear();
+    _threadCache.set(threadId, info);
+    return info;
+  } catch (_) { return null; }
+}
+
+const _nameCache = new Map();
+async function displayName(uid) {
+  const hit = _nameCache.get(uid);
+  if (hit && Date.now() - hit.t < 10 * 60_000) return hit.v;
+  const u = await getUser(uid);
+  const v = (u && val(u.f.name)) || 'Biri';
+  if (_nameCache.size > 500) _nameCache.clear();
+  _nameCache.set(uid, { v, t: Date.now() });
+  return v;
+}
+
+/// Flock sohbetinde alıcılar CANLI üyelikten gelir; sonradan katılan da
+/// bildirim alsın, ayrılan almasın. Kısa ömürlü önbellek: flock en fazla
+/// 2 saat yaşıyor, 60 sn bayatlık zararsız.
+const _flockCache = new Map();
+async function flockInfo(flockId) {
+  const hit = _flockCache.get(flockId);
+  if (hit && Date.now() - hit.t < 60_000) return hit.v;
+  try {
+    const d = await fb(`${BASE}/flocks/${flockId}`);
+    const f = d.fields || {};
+    const v = {
+      venue: val(f.venue) || 'Flock',
+      members: ((f.memberUids && f.memberUids.arrayValue && f.memberUids.arrayValue.values) || [])
+        .map((x) => x.stringValue).filter(Boolean),
+    };
+    _flockCache.set(flockId, { v, t: Date.now() });
+    return v;
+  } catch (_) { return null; }
+}
+
+const clip = (s, n) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+async function checkNewMessages() {
+  const first = !cfg.msgWatermark;
+  const since = cfg.msgWatermark || new Date().toISOString();
+  if (first) { cfg.msgWatermark = since; saveCfg(); return; } // ilk tur: tohumla
+
+  const rows = await runQueryFull({
+    from: [{ collectionId: 'messages', allDescendants: true }],
+    where: gtTime('at', since),
+    orderBy: ascBy('at'),
+    limit: 30,
+  });
+  if (!rows.length) return;
+
+  cfg.msgSeen = cfg.msgSeen || [];
+  for (const m of rows) {
+    const at = tsVal(m.f.at);
+    if (at) cfg.msgWatermark = at;
+    if (cfg.msgSeen.includes(m.name)) continue;
+    cfg.msgSeen.push(m.name);
+    if (cfg.msgSeen.length > 100) cfg.msgSeen = cfg.msgSeen.slice(-100);
+
+    // Bot bir süre kapalı kaldıysa geçmişi bildirime çevirme.
+    if (at && Date.now() - Date.parse(at) > MSG_MAX_AGE_MS) continue;
+
+    const from = val(m.f.from);
+    const text = val(m.f.text) || '';
+    // .../documents/threads/{threadId}/messages/{msgId}
+    const parts = m.name.split('/');
+    const threadId = parts[parts.length - 3];
+    if (!from || !threadId) continue;
+
+    const th = await threadInfo(threadId);
+    if (!th) continue;
+
+    let recipients = [];
+    let title = '';
+    let body = clip(text, 120);
+    if (th.kind === 'flock') {
+      const fl = await flockInfo(th.flockId);
+      if (!fl) continue;
+      recipients = fl.members.filter((u) => u !== from);
+      title = fl.venue;
+      body = `${await displayName(from)}: ${clip(text, 110)}`;
+    } else {
+      recipients = th.members.filter((u) => u !== from);
+      title = await displayName(from);
+    }
+
+    for (const uid of recipients) {
+      try { await sendPush(uid, title, body, 'message', { threadId }); } catch (_) {}
+    }
+  }
+  saveCfg();
 }
 
 // ---------- özet & istatistik ----------
@@ -600,6 +778,7 @@ let fsErrs = 0, fsAlerted = false;
 async function fsTick() {
   try {
     await checkPendingVerifications(); await checkReports(); await checkNewSignups();
+    await checkNewMessages();
     if (fsAlerted) { await tgMsg('✅ Bağlantı düzeldi, bot normale döndü.'); fsAlerted = false; }
     fsErrs = 0;
   } catch (e) {

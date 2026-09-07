@@ -677,6 +677,12 @@ class AppL10nEn extends AppL10n {
   String get notifJoinsBody => 'When someone joins your flock';
 
   @override
+  String get notifMessages => 'Messages';
+
+  @override
+  String get notifMessagesBody => 'When someone messages you';
+
+  @override
   String get notifAnnouncements => 'Announcements';
 
   @override

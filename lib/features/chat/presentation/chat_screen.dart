@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/services/fcm_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
@@ -30,6 +31,10 @@ class ChatScreen extends StatefulWidget {
   /// Süresi dolmuş flock: geçmiş okunur ama yeni mesaj yazılmaz.
   final bool closed;
 
+  /// Çağıran taraf sohbetin zaten okunmuş olduğunu biliyorsa true — o zaman
+  /// okundu damgası yeniden yazılmaz.
+  final bool alreadySeen;
+
   const ChatScreen({
     super.key,
     required this.threadId,
@@ -40,6 +45,7 @@ class ChatScreen extends StatefulWidget {
     this.peerUid,
     this.names = const {},
     this.closed = false,
+    this.alreadySeen = false,
   });
 
   static Future<void> openDm(
@@ -48,6 +54,7 @@ class ChatScreen extends StatefulWidget {
     required String peerUid,
     required String peerName,
     String? subtitle,
+    bool alreadySeen = false,
   }) {
     return Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => ChatScreen(
@@ -56,6 +63,7 @@ class ChatScreen extends StatefulWidget {
         title: peerName,
         subtitle: subtitle,
         peerUid: peerUid,
+        alreadySeen: alreadySeen,
         seed: ChatRepository.dmSeed(meUid, peerUid),
       ),
     ));
@@ -93,19 +101,34 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _sending = false;
   bool _seen = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Açık sohbetin push'u ön planda snackbar'a dönüşmesin.
+    FcmService.openThreadId = widget.threadId;
+  }
+
   /// Ekranı açmak "okudum" demektir; rozet hemen düşsün.
   ///
   /// Ama İLK mesajdan önce değil: sohbet belgesi henüz yokken okundu damgası
   /// yazmaya çalışmak kuralca reddedilir — zararsız ama her açılışta boşa bir
   /// yazma ve kayıtlarda sahte bir "PERMISSION_DENIED" demek.
+  ///
+  /// [widget.alreadySeen] geldiğinde hiç yazmayız: mesaj kutusundan zaten
+  /// okunmuş bir sohbete girmek Firestore'a yazmayı hak etmiyor (yazma,
+  /// okumanın üç katı fiyat).
   void _markSeenOnce() {
     if (_seen) return;
     _seen = true;
+    if (widget.alreadySeen) return;
     ChatRepository.instance.markSeen(widget.threadId, widget.meUid);
   }
 
   @override
   void dispose() {
+    if (FcmService.openThreadId == widget.threadId) {
+      FcmService.openThreadId = null;
+    }
     _ctrl.dispose();
     _focus.dispose();
     super.dispose();
@@ -211,8 +234,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
                 if (msgs.isEmpty) return _center(t.chatEmptyThread);
                 // Mesaj varsa sohbet belgesi de vardır: okundu damgası artık
-                // yazılabilir. Çizim sırasında yazmamak için kare sonrasına
-                // bırakılıyor.
+                // yazılabilir, ve gönderirken "belge var mı" okuması gerekmez.
+                // Çizim sırasında yazmamak için kare sonrasına bırakılıyor.
+                ChatRepository.instance.markExists(widget.threadId);
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => _markSeenOnce());
                 return ListView.builder(

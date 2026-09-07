@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../profile/data/user_profile_repository.dart';
+
 /// Seni beğenen kişi.
 class Admirer {
   final String uid;
@@ -54,13 +56,14 @@ class LikesRepository {
     for (final d in snap.docs) {
       final from = d.data()['from'] as String?;
       if (from == null || from == uid) continue;
-      final profile = await _db.collection('users').doc(from).get();
-      final m = profile.data();
-      if (m == null) continue; // hesap silinmiş
+      // Önbellekli okuma: panel ve mesaj kutusu aynı kişileri arka arkaya
+      // istiyor; her açılışta yeniden indirmek boşuna.
+      final profile = await UserProfileRepository.instance.fetchCached(from);
+      if (profile == null) continue; // hesap silinmiş
       rows.add(Admirer(
         uid: from,
-        name: (m['name'] as String?) ?? '',
-        age: (m['age'] as num?)?.toInt() ?? 0,
+        name: profile.name,
+        age: profile.age,
         mutual: mine.contains(from),
         at: (d.data()['createdAt'] as Timestamp?)?.toDate(),
       ));

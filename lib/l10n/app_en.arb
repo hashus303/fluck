@@ -232,6 +232,8 @@
     "notifSection": "Notifications",
   "notifJoins": "Flock activity",
   "notifJoinsBody": "When someone joins your flock",
+  "notifMessages": "Messages",
+  "notifMessagesBody": "When someone messages you",
   "notifAnnouncements": "Announcements",
   "notifAnnouncementsBody": "News from the Flock team",
   "notifVerification": "Verification result",

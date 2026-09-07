@@ -1309,6 +1309,18 @@ abstract class AppL10n {
   /// **'When someone joins your flock'**
   String get notifJoinsBody;
 
+  /// No description provided for @notifMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get notifMessages;
+
+  /// No description provided for @notifMessagesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone messages you'**
+  String get notifMessagesBody;
+
   /// No description provided for @notifAnnouncements.
   ///
   /// In en, this message translates to:

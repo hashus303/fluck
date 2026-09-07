@@ -236,6 +236,9 @@ class _ThreadRow extends StatelessWidget {
             peerUid: other,
             peerName: name,
             subtitle: t.chatMutualSubtitle,
+            // Okunmuş sohbete girmek okundu damgasını yeniden yazmayı hak
+            // etmiyor; durumu burada zaten biliyoruz.
+            alreadySeen: !unread,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),

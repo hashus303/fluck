@@ -677,6 +677,12 @@ class AppL10nTr extends AppL10n {
   String get notifJoinsBody => 'Biri flock\'una katıldığında';
 
   @override
+  String get notifMessages => 'Mesajlar';
+
+  @override
+  String get notifMessagesBody => 'Sana mesaj geldiğinde';
+
+  @override
   String get notifAnnouncements => 'Duyurular';
 
   @override

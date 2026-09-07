@@ -359,9 +359,14 @@ class _RootScreenState extends State<RootScreen> {
   /// kurulur.
   Stream<int>? _badge;
 
-  Stream<int>? get badgeStream {
+  /// Yalnızca Flock+ üyesine kurulur.
+  ///
+  /// Beğeni de sohbet de Date'ten doğuyor, Date ise abonelik arkasında.
+  /// Ücretsiz kullanıcıda bu iki dinleyici ömür boyu açık kalıp HİÇBİR ZAMAN
+  /// bir şey gösteremezdi — Firestore'a bedava yük.
+  Stream<int>? badgeStream(bool isPlus) {
     final uid = _uid;
-    if (uid == null) return null;
+    if (uid == null || !isPlus) return null;
     return _badge ??= _sumStreams(
       LikesRepository.instance.incomingCount(uid),
       ChatRepository.instance.unreadCount(uid),
@@ -415,13 +420,16 @@ class _RootScreenState extends State<RootScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgPage,
       body: stack,
-      bottomNavigationBar: _FlockNav(
-        active: _tab,
-        onTap: (i) => setState(() => _tab = i),
-        onCreate: _openCreate,
-        likesStream: badgeStream,
-        onOpenPlus:
-            _uid == null ? null : () => PlusSheet.show(context, _uid!),
+      bottomNavigationBar: ValueListenableBuilder<PremiumState>(
+        valueListenable: PremiumService.instance.state,
+        builder: (context, plus, _) => _FlockNav(
+          active: _tab,
+          onTap: (i) => setState(() => _tab = i),
+          onCreate: _openCreate,
+          likesStream: badgeStream(plus.isPlus),
+          onOpenPlus:
+              _uid == null ? null : () => PlusSheet.show(context, _uid!),
+        ),
       ),
     );
   }

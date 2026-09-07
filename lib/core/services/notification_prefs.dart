@@ -17,6 +17,7 @@ class NotificationPrefs {
   /// Varsayılan: hepsi açık. Kullanıcı kısıtlamayı kendisi seçer.
   static const _defaults = <String, bool>{
     'notifJoins': true,
+    'notifMessages': true,
     'notifAnnouncements': true,
     'notifVerification': true,
   };
@@ -27,6 +28,7 @@ class NotificationPrefs {
   String? _uid;
 
   bool get joins => prefs.value['notifJoins'] ?? true;
+  bool get messages => prefs.value['notifMessages'] ?? true;
   bool get announcements => prefs.value['notifAnnouncements'] ?? true;
   bool get verification => prefs.value['notifVerification'] ?? true;
 
@@ -34,6 +36,7 @@ class NotificationPrefs {
   /// tür eklendiğinde sessizce kaybolmasın.
   bool allows(String? type) => switch (type) {
         'join' => joins,
+        'message' => messages,
         'announcement' => announcements,
         'verification' || 'verification_rejected' => verification,
         _ => true,

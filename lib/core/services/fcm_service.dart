@@ -24,6 +24,11 @@ class FcmService {
   String? _uid;
   bool _inited = false;
 
+  /// Şu an açık olan sohbet. Zaten bakılan sohbetin mesajı için ön planda
+  /// snackbar çıkarmak gürültü: kullanıcı mesajı balon olarak zaten gördü.
+  /// (Sistem tepsisi bildirimi ön planda FCM tarafından zaten gösterilmiyor.)
+  static String? openThreadId;
+
   Future<void> init() async {
     if (_inited || kIsWeb) return; // web push kapsam dışı
     _inited = true;
@@ -69,6 +74,8 @@ class FcmService {
     // Kullanıcı bu türü kapattıysa ön planda da gösterme — ayar her yerde
     // aynı anlama gelsin.
     if (!NotificationPrefs.instance.allows(msg.data['type'] as String?)) return;
+    final thread = msg.data['threadId'] as String?;
+    if (thread != null && thread == openThreadId) return;
     final n = msg.notification;
     final parts = <String?>[n?.title ?? msg.data['title'], n?.body ?? msg.data['body']]
         .whereType<String>()
