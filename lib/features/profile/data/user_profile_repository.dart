@@ -27,6 +27,7 @@ class UserProfileRepository {
   /// Onboarding sonunda profili kaydeder (merge ile).
   Future<void> save(UserProfile profile) async {
     _photoCache.remove(profile.uid);
+    _nameCache.remove(profile.uid);
     await _users.doc(profile.uid).set({
       ...profile.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -99,6 +100,23 @@ class UserProfileRepository {
   /// yüzden bir kare boş çizer ve kart 'önce boş gelip sonra dolar'. Bunu
   /// initialData olarak vermek o kareyi ortadan kaldırır.
   String? cachedPhoto(String uid) => _photoCache[uid];
+
+  /// Görünen ad önbelleği — fotoğrafla aynı gerekçe.
+  ///
+  /// Mesaj kutusu her sohbet güncellemesinde yeniden çiziliyor; `fetch()`
+  /// önbelleksiz olduğu için her çizimde satır başına bir Firestore okuması
+  /// çıkıyordu. Ad nadiren değişir, cepte tutmak doğru takas.
+  final Map<String, String> _nameCache = {};
+
+  String? cachedName(String uid) => _nameCache[uid];
+
+  Future<String> fetchName(String uid) async {
+    final hit = _nameCache[uid];
+    if (hit != null) return hit;
+    final name = (await fetch(uid))?.name ?? '';
+    _nameCache[uid] = name;
+    return name;
+  }
 
   Future<String?> fetchPhotoB64(String uid) async {
     if (_photoCache.containsKey(uid)) return _photoCache[uid];

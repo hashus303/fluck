@@ -1420,8 +1420,14 @@ abstract class AppL10n {
   /// No description provided for @dateMutual.
   ///
   /// In en, this message translates to:
-  /// **'{name} liked you back — start a flock and invite them.'**
+  /// **'{name} liked you back — you can message each other now.'**
   String dateMutual(String name);
+
+  /// No description provided for @dateMutualCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get dateMutualCta;
 
   /// No description provided for @plusSheetLede.
   ///
@@ -1456,7 +1462,7 @@ abstract class AppL10n {
   /// No description provided for @plusMutualHint.
   ///
   /// In en, this message translates to:
-  /// **'You both liked each other — start a flock and invite them.'**
+  /// **'You both liked each other — you can message now.'**
   String get plusMutualHint;
 
   /// No description provided for @plusMutualBadge.
@@ -1477,17 +1483,155 @@ abstract class AppL10n {
   /// **'Your subscription'**
   String get plusStatusTitle;
 
-  /// No description provided for @plusMessagesSoon.
+  /// No description provided for @plusMessagesRow.
   ///
   /// In en, this message translates to:
-  /// **'Messaging isn\'t built yet. For now you meet by inviting someone to your flock.'**
-  String get plusMessagesSoon;
+  /// **'Messages'**
+  String get plusMessagesRow;
+
+  /// No description provided for @plusMessagesRowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with your mutual likes'**
+  String get plusMessagesRowHint;
 
   /// No description provided for @plusOpenHint.
   ///
   /// In en, this message translates to:
   /// **'Hold the heart'**
   String get plusOpenHint;
+
+  /// No description provided for @chatInboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get chatInboxTitle;
+
+  /// No description provided for @chatOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get chatOpen;
+
+  /// No description provided for @chatNewMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW MATCHES'**
+  String get chatNewMatches;
+
+  /// No description provided for @chatConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'CONVERSATIONS'**
+  String get chatConversations;
+
+  /// No description provided for @chatNoConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats yet. Say the first word to someone above.'**
+  String get chatNoConversations;
+
+  /// No description provided for @chatNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches yet. Like people in the deck — when it\'s mutual, you meet here.'**
+  String get chatNoMatches;
+
+  /// No description provided for @chatEmptyThread.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet. Say the first word.'**
+  String get chatEmptyThread;
+
+  /// No description provided for @chatComposerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message…'**
+  String get chatComposerHint;
+
+  /// No description provided for @chatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// No description provided for @chatSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Message not sent. Check your connection.'**
+  String get chatSendFailed;
+
+  /// No description provided for @chatLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the chat. Check your connection and reopen.'**
+  String get chatLoadFailed;
+
+  /// No description provided for @chatToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get chatToday;
+
+  /// No description provided for @chatYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get chatYesterday;
+
+  /// No description provided for @chatYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get chatYou;
+
+  /// No description provided for @chatCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatCopy;
+
+  /// No description provided for @chatDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get chatDelete;
+
+  /// No description provided for @chatMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get chatMore;
+
+  /// No description provided for @chatMutualSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You liked each other'**
+  String get chatMutualSubtitle;
+
+  /// No description provided for @chatFlockCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatFlockCta;
+
+  /// No description provided for @chatFlockJoinFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Join the flock to chat'**
+  String get chatFlockJoinFirst;
+
+  /// No description provided for @chatFlockClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This flock has ended — the chat is closed. You can still read it.'**
+  String get chatFlockClosed;
+
+  /// No description provided for @chatFlockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people'**
+  String chatFlockSubtitle(int count);
 
   /// No description provided for @errGeneric.
   ///

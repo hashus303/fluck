@@ -736,8 +736,11 @@ class AppL10nTr extends AppL10n {
 
   @override
   String dateMutual(String name) {
-    return '$name de seni beğenmiş — bir flock açıp davet et.';
+    return '$name de seni beğenmiş — artık yazışabilirsiniz.';
   }
+
+  @override
+  String get dateMutualCta => 'Mesaj at';
 
   @override
   String get plusSheetLede => 'Seni beğenenler ve abonelik durumun.';
@@ -757,7 +760,7 @@ class AppL10nTr extends AppL10n {
   String get plusLikedYouHint => 'Seni beğendi';
 
   @override
-  String get plusMutualHint => 'İkiniz de beğendiniz — flock açıp davet et.';
+  String get plusMutualHint => 'İkiniz de beğendiniz — yazışabilirsiniz.';
 
   @override
   String get plusMutualBadge => 'Karşılıklı';
@@ -769,11 +772,85 @@ class AppL10nTr extends AppL10n {
   String get plusStatusTitle => 'Aboneliğin';
 
   @override
-  String get plusMessagesSoon =>
-      'Mesajlaşma henüz yok. Şimdilik beğendiğin kişiyi flock’una davet ederek tanışıyorsun.';
+  String get plusMessagesRow => 'Mesajlar';
+
+  @override
+  String get plusMessagesRowHint => 'Karşılıklı beğendiklerinle yazış';
 
   @override
   String get plusOpenHint => 'Kalbe basılı tut';
+
+  @override
+  String get chatInboxTitle => 'Mesajlar';
+
+  @override
+  String get chatOpen => 'Mesajlar';
+
+  @override
+  String get chatNewMatches => 'YENİ EŞLEŞMELER';
+
+  @override
+  String get chatConversations => 'KONUŞMALAR';
+
+  @override
+  String get chatNoConversations =>
+      'Henüz yazışma yok. Yukarıdan birine ilk sözü söyle.';
+
+  @override
+  String get chatNoMatches =>
+      'Henüz eşleşme yok. Destede beğen — karşılıklı olduğunda burada buluşursunuz.';
+
+  @override
+  String get chatEmptyThread => 'Burası boş. İlk sözü sen söyle.';
+
+  @override
+  String get chatComposerHint => 'Mesaj yaz…';
+
+  @override
+  String get chatSend => 'Gönder';
+
+  @override
+  String get chatSendFailed => 'Mesaj gönderilemedi. Bağlantını kontrol et.';
+
+  @override
+  String get chatLoadFailed =>
+      'Sohbet yüklenemedi. Bağlantını kontrol edip tekrar aç.';
+
+  @override
+  String get chatToday => 'Bugün';
+
+  @override
+  String get chatYesterday => 'Dün';
+
+  @override
+  String get chatYou => 'Sen';
+
+  @override
+  String get chatCopy => 'Kopyala';
+
+  @override
+  String get chatDelete => 'Mesajı sil';
+
+  @override
+  String get chatMore => 'Seçenekler';
+
+  @override
+  String get chatMutualSubtitle => 'Karşılıklı beğeni';
+
+  @override
+  String get chatFlockCta => 'Sohbet';
+
+  @override
+  String get chatFlockJoinFirst => 'Sohbet için önce flock\'a katıl';
+
+  @override
+  String get chatFlockClosed =>
+      'Bu flock sona erdi — sohbet kapandı. Geçmişi okuyabilirsin.';
+
+  @override
+  String chatFlockSubtitle(int count) {
+    return '$count kişi';
+  }
 
   @override
   String get errGeneric => 'Bir şeyler ters gitti. Tekrar dene.';

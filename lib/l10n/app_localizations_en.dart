@@ -736,8 +736,11 @@ class AppL10nEn extends AppL10n {
 
   @override
   String dateMutual(String name) {
-    return '$name liked you back — start a flock and invite them.';
+    return '$name liked you back — you can message each other now.';
   }
+
+  @override
+  String get dateMutualCta => 'Message';
 
   @override
   String get plusSheetLede => 'Who liked you, and your subscription.';
@@ -758,7 +761,7 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get plusMutualHint =>
-      'You both liked each other — start a flock and invite them.';
+      'You both liked each other — you can message now.';
 
   @override
   String get plusMutualBadge => 'Mutual';
@@ -770,11 +773,85 @@ class AppL10nEn extends AppL10n {
   String get plusStatusTitle => 'Your subscription';
 
   @override
-  String get plusMessagesSoon =>
-      'Messaging isn\'t built yet. For now you meet by inviting someone to your flock.';
+  String get plusMessagesRow => 'Messages';
+
+  @override
+  String get plusMessagesRowHint => 'Chat with your mutual likes';
 
   @override
   String get plusOpenHint => 'Hold the heart';
+
+  @override
+  String get chatInboxTitle => 'Messages';
+
+  @override
+  String get chatOpen => 'Messages';
+
+  @override
+  String get chatNewMatches => 'NEW MATCHES';
+
+  @override
+  String get chatConversations => 'CONVERSATIONS';
+
+  @override
+  String get chatNoConversations =>
+      'No chats yet. Say the first word to someone above.';
+
+  @override
+  String get chatNoMatches =>
+      'No matches yet. Like people in the deck — when it\'s mutual, you meet here.';
+
+  @override
+  String get chatEmptyThread => 'Nothing here yet. Say the first word.';
+
+  @override
+  String get chatComposerHint => 'Write a message…';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatSendFailed => 'Message not sent. Check your connection.';
+
+  @override
+  String get chatLoadFailed =>
+      'Couldn\'t load the chat. Check your connection and reopen.';
+
+  @override
+  String get chatToday => 'Today';
+
+  @override
+  String get chatYesterday => 'Yesterday';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String get chatCopy => 'Copy';
+
+  @override
+  String get chatDelete => 'Delete message';
+
+  @override
+  String get chatMore => 'Options';
+
+  @override
+  String get chatMutualSubtitle => 'You liked each other';
+
+  @override
+  String get chatFlockCta => 'Chat';
+
+  @override
+  String get chatFlockJoinFirst => 'Join the flock to chat';
+
+  @override
+  String get chatFlockClosed =>
+      'This flock has ended — the chat is closed. You can still read it.';
+
+  @override
+  String chatFlockSubtitle(int count) {
+    return '$count people';
+  }
 
   @override
   String get errGeneric => 'Something went wrong. Try again.';

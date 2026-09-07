@@ -343,7 +343,7 @@ class AvatarStack extends StatelessWidget {
   }
 }
 
-enum FlockBtn { primary, secondary, soft, danger }
+enum FlockBtn { primary, secondary, soft, danger, dangerSoft }
 
 class FlockButton extends StatelessWidget {
   final String label;
@@ -386,6 +386,13 @@ class FlockButton extends StatelessWidget {
         bg = AppColors.danger;
         fg = AppColors.onDanger;
         shadow = AppColors.glowDanger;
+        break;
+      // Yıkıcı ama ASIL eylem olmayan düğme: yanında dolu bir birincil düğme
+      // varken kırmızı dolgu onunla yarışıyor. Renk uyarıyı taşımaya devam
+      // eder, ağırlık geri çekilir.
+      case FlockBtn.dangerSoft:
+        bg = AppColors.dangerSoft;
+        fg = AppColors.danger;
         break;
     }
     return Material(

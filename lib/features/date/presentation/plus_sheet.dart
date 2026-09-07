@@ -4,6 +4,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../chat/data/chat_repository.dart';
+import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/messages_screen.dart';
 import '../../premium/data/premium_service.dart';
 import '../../profile/data/user_profile_repository.dart';
 import '../data/discovery_repository.dart';
@@ -62,7 +65,9 @@ class PlusSheet extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(t.plusSheetLede,
                     style: AppText.body(14, color: AppColors.textMuted)),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
+                _MessagesRow(uid: uid),
+                const SizedBox(height: 22),
                 _AdmirersSection(uid: uid),
                 const SizedBox(height: 24),
                 _StatusSection(uid: uid),
@@ -71,6 +76,63 @@ class PlusSheet extends StatelessWidget {
           ),
         ]),
       ),
+    );
+  }
+}
+
+/// Mesaj kutusuna giriş — okunmamış varsa sayıyı da gösterir.
+class _MessagesRow extends StatelessWidget {
+  final String uid;
+  const _MessagesRow({required this.uid});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppL10n.of(context);
+    return StreamBuilder<int>(
+      stream: ChatRepository.instance.unreadCount(uid),
+      builder: (context, snap) {
+        final unread = snap.data ?? 0;
+        return InkSurface(
+          color: AppColors.surfaceCard,
+          radius: AppRadius.md,
+          borderColor:
+              unread > 0 ? AppColors.brandSoftStrong : AppColors.borderSubtle,
+          padding: const EdgeInsets.all(14),
+          onTap: () {
+            Navigator.pop(context); // panel kapansın, kutu üstüne binmesin
+            MessagesScreen.show(context, uid);
+          },
+          child: Row(children: [
+            Icon(Icons.forum_rounded, size: 21, color: AppColors.brand),
+            const SizedBox(width: 12),
+            Expanded(
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(t.plusMessagesRow,
+                    style: AppText.body(14.5,
+                        weight: FontWeight.w700, color: AppColors.textStrong)),
+                const SizedBox(height: 2),
+                Text(t.plusMessagesRowHint,
+                    style: AppText.body(12, color: AppColors.textMuted)),
+              ]),
+            ),
+            if (unread > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.brand,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(unread > 9 ? '9+' : '$unread',
+                    style: AppText.body(11.5,
+                        weight: FontWeight.w800, color: AppColors.onBrand)),
+              )
+            else
+              Icon(Icons.chevron_right_rounded,
+                  size: 20, color: AppColors.textFaint),
+          ]),
+        );
+      },
     );
   }
 }
@@ -203,8 +265,21 @@ class _AdmirerRowState extends State<_AdmirerRow> {
           ]),
         ),
         const SizedBox(width: 8),
+        // Karşılıklıysa rozet göstermek yerine YAPILACAK ŞEYİ göster:
+        // "Karşılıklı" bilgisi zaten alt satırda yazıyor.
         if (_mutual)
-          FlockBadge(t.plusMutualBadge, icon: '💞', tone: BadgeTone.coral)
+          FlockButton(
+            label: t.dateMutualCta,
+            variant: FlockBtn.soft,
+            onPressed: () => ChatScreen.openDm(
+              context,
+              meUid: widget.meUid,
+              peerUid: a.uid,
+              peerName: a.name,
+              subtitle: t.chatMutualSubtitle,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          )
         else
           FlockButton(
             label: t.plusLikeBack,
@@ -252,9 +327,6 @@ class _StatusSection extends StatelessWidget {
               ),
             ]),
           ),
-          const SizedBox(height: 10),
-          Text(t.plusMessagesSoon,
-              style: AppText.body(12.5, color: AppColors.textFaint)),
         ]);
       },
     );

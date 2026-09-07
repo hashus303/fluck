@@ -5,15 +5,19 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/flock_widgets.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../chat/data/chat_repository.dart';
+import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/messages_screen.dart';
 import '../../profile/data/user_profile_repository.dart';
 import '../../safety/data/moderation_repository.dart';
 import '../data/discovery_repository.dart';
 
 /// Date destesi — yakındaki doğrulanmış kişiler.
 ///
-/// Ürün çerçevesi (B kararı): burada "eşleşme" yok. Beğendiğin kişiyi
-/// FLOCK'UNA davet edersin; buluşma her zaman grupça kalır. Bu yüzden
-/// karşılıklı beğenide "eşleştiniz" değil, "sen de beğenmişsin" denir.
+/// Ürün çerçevesi (B kararı): karşılıklı beğeni bir SOHBET açar, bir buluşma
+/// değil. Buluşma her zaman grupça kalır — tanıştıktan sonra karşındakini
+/// flock'una davet edersin. Bu yüzden dilde "eşleştiniz, çıkın" değil,
+/// "yazışabilirsiniz" denir.
 class DateDeck extends StatefulWidget {
   final String uid;
   const DateDeck({super.key, required this.uid});
@@ -193,6 +197,19 @@ class _DateDeckState extends State<DateDeck> with TickerProviderStateMixin {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(t.dateMutual(person.name)),
       behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 6),
+      // Haberi verip bırakmak yerine kapıyı da aç: karşılıklı beğeninin
+      // karşılığı artık sohbet.
+      action: SnackBarAction(
+        label: t.dateMutualCta,
+        onPressed: () => ChatScreen.openDm(
+          context,
+          meUid: widget.uid,
+          peerUid: person.uid,
+          peerName: person.name,
+          subtitle: t.chatMutualSubtitle,
+        ),
+      ),
     ));
   }
 
@@ -234,6 +251,8 @@ class _DateDeckState extends State<DateDeck> with TickerProviderStateMixin {
             Expanded(child: Text(t.dateTitle, style: AppText.display(26))),
             Text('${_index + 1}/${_people!.length}',
                 style: AppText.body(13, color: AppColors.textFaint)),
+            const SizedBox(width: 4),
+            _InboxButton(uid: widget.uid),
           ]),
           const SizedBox(height: 14),
           Expanded(
@@ -464,6 +483,52 @@ class _CardFace extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Deste başlığındaki mesaj kutusu düğmesi — okunmamış varsa rozetli.
+///
+/// Mesajlaşmanın görünür bir kapısı burada olmalı: sohbetler destede
+/// doğuyor, kullanıcı da onları burada arıyor.
+class _InboxButton extends StatelessWidget {
+  final String uid;
+  const _InboxButton({required this.uid});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppL10n.of(context);
+    return StreamBuilder<int>(
+      stream: ChatRepository.instance.unreadCount(uid),
+      builder: (context, snap) {
+        final n = snap.data ?? 0;
+        return IconButton(
+          tooltip: t.chatOpen,
+          onPressed: () => MessagesScreen.show(context, uid),
+          icon: Stack(clipBehavior: Clip.none, children: [
+            Icon(Icons.forum_rounded, size: 23, color: AppColors.textMuted),
+            if (n > 0)
+              Positioned(
+                right: -4,
+                top: -3,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  constraints:
+                      const BoxConstraints(minWidth: 16, minHeight: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.brand,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.bgPage, width: 1.5),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(n > 9 ? '9+' : '$n',
+                      style: AppText.body(9,
+                          weight: FontWeight.w800, color: AppColors.onBrand)),
+                ),
+              ),
+          ]),
+        );
+      },
     );
   }
 }

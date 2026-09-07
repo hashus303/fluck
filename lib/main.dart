@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ import 'features/profile/presentation/verification_gate_screen.dart';
 import 'features/home/presentation/map_screen.dart';
 import 'features/invite/presentation/invite_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
+import 'features/chat/data/chat_repository.dart';
 import 'features/date/data/likes_repository.dart';
 import 'features/date/presentation/date_screen.dart';
 import 'features/date/presentation/plus_sheet.dart';
@@ -300,6 +303,38 @@ class _GateLoading extends StatelessWidget {
       );
 }
 
+/// İki sayaç akışını toplayan küçük birleştirici.
+///
+/// rxdart eklemeye değmeyecek kadar küçük bir iş. Yayın (broadcast) akışı
+/// döner: geniş ekranda alt bar ile yan ray birbirinin yerini alırken abone
+/// gidip geliyor, tek abonelikli akış ikinci dinleyicide patlardı.
+Stream<int> _sumStreams(Stream<int> a, Stream<int> b) {
+  var x = 0, y = 0;
+  StreamSubscription<int>? sa, sb;
+  late final StreamController<int> c;
+  c = StreamController<int>.broadcast(
+    onListen: () {
+      sa = a.listen((v) {
+        x = v;
+        c.add(x + y);
+      }, onError: (_) {/* sayaç kritik değil */});
+      sb = b.listen((v) {
+        y = v;
+        c.add(x + y);
+      }, onError: (_) {});
+    },
+    onCancel: () async {
+      await sa?.cancel();
+      await sb?.cancel();
+      sa = null;
+      sb = null;
+      x = 0;
+      y = 0;
+    },
+  );
+  return c.stream;
+}
+
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
 
@@ -314,6 +349,24 @@ class _RootScreenState extends State<RootScreen> {
   int _tab = 0;
 
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
+  /// Date kalbindeki rozet: "Date'te seni bekleyen bir şey var" — gelen
+  /// beğeniler + okunmamış sohbetler. İkisini ayrı ayrı göstermek alt barda
+  /// yer bulamaz; ayrıntı zaten uzun basınca açılan panelde duruyor.
+  ///
+  /// Akış BİR KEZ kurulur: build içinde üretilirse her yeniden çizimde
+  /// StreamBuilder yeni akışa abone olur ve Firestore dinleyicisi baştan
+  /// kurulur.
+  Stream<int>? _badge;
+
+  Stream<int>? get badgeStream {
+    final uid = _uid;
+    if (uid == null) return null;
+    return _badge ??= _sumStreams(
+      LikesRepository.instance.incomingCount(uid),
+      ChatRepository.instance.unreadCount(uid),
+    );
+  }
 
   void _openCreate() {
     Navigator.of(context).push(MaterialPageRoute(
@@ -366,9 +419,7 @@ class _RootScreenState extends State<RootScreen> {
         active: _tab,
         onTap: (i) => setState(() => _tab = i),
         onCreate: _openCreate,
-        likesStream: _uid == null
-            ? null
-            : LikesRepository.instance.incomingCount(_uid!),
+        likesStream: badgeStream,
         onOpenPlus:
             _uid == null ? null : () => PlusSheet.show(context, _uid!),
       ),

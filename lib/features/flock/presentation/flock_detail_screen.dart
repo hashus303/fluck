@@ -13,6 +13,7 @@ import '../../../core/widgets/flock_widgets.dart';
 import '../../../core/widgets/map_tiles.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../profile/data/user_profile_repository.dart';
 import '../../safety/data/moderation_repository.dart';
 import '../data/flock_doc.dart';
@@ -227,22 +228,56 @@ class _FlockDetailScreenState extends State<FlockDetailScreen> {
   }
 
   Widget _cta(AppL10n t, FlockDoc doc, {required bool joined, required bool isHost}) {
-    if (isHost) {
-      return FlockButton(
-        label: t.cancelFlock, variant: FlockBtn.danger, full: true,
+    if (isHost || joined) {
+      // Üyenin asıl işi SOHBET: "neredesin", "5 dk geciktim" burada konuşulur.
+      // Ayrılmak ikincil — altta, daha sessiz durur. Yan yana koymadık:
+      // "Flock'u iptal et" yarım satıra sığmıyor.
+      if (!_live) {
+        return FlockButton(
+          label: isHost ? t.cancelFlock : t.leaveFlock,
+          variant: isHost ? FlockBtn.danger : FlockBtn.secondary,
+          full: true,
+          onPressed: () => _leave(doc),
+        );
+      }
+      // Sohbet düğmesi yanındayken kırmızı dolgu onunla yarışıyor: uyarı
+      // rengi kalır, ağırlık geri çekilir.
+      final leave = FlockButton(
+        label: isHost ? t.cancelFlock : t.leaveFlock,
+        variant: isHost ? FlockBtn.dangerSoft : FlockBtn.secondary,
+        full: true,
         onPressed: () => _leave(doc),
       );
-    }
-    if (joined) {
-      return FlockButton(
-        label: t.leaveFlock, variant: FlockBtn.secondary, full: true,
-        onPressed: () => _leave(doc),
-      );
+      return Column(mainAxisSize: MainAxisSize.min, children: [
+        FlockButton(
+          label: t.chatFlockCta,
+          full: true,
+          onPressed: () => _openChat(doc),
+        ),
+        const SizedBox(height: 8),
+        leave,
+      ]);
     }
     if (doc.isFull) {
       return FlockButton(label: t.flockFull, variant: FlockBtn.secondary, full: true, onPressed: null);
     }
     return FlockButton(label: t.join, full: true, onPressed: () => _join(doc));
+  }
+
+  /// Flock sohbeti. Üyelik listesi sohbet belgesine YAZILMAZ; kural flock'a
+  /// canlı bakar, böylece sonradan katılan geçmişi okur, ayrılan okuyamaz.
+  void _openChat(FlockDoc doc) {
+    final t = AppL10n.of(context);
+    ChatScreen.openFlock(
+      context,
+      meUid: _myUid!,
+      flockId: doc.id,
+      title: doc.venue,
+      subtitle: t.chatFlockSubtitle(doc.memberUids.length),
+      names: doc.memberNames,
+      // Süresi dolmuş flock: geçmiş okunur, yeni mesaj yazılmaz.
+      closed: doc.isExpired,
+    );
   }
 
   Future<void> _join(FlockDoc doc) async {

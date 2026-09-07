@@ -174,6 +174,127 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Sohbetler. İki tür de aynı belge şeklini kullanır:
+    //   'dm'    — birbirini beğenmiş iki kişi. Kimlik: dm_{küçükUid}_{büyükUid}
+    //   'flock' — bir flock'un üyeleri.        Kimlik: flock_{flockId}
+    //
+    // Kimlik VERİDEN TÜRETİLİR ve kural bunu doğrular. Böylece kimse üyesi
+    // olmadığı bir sohbeti açamaz, uydurma kimlikle başkasının sohbetine
+    // sızamaz. DM'de uid'lerin sıralı olması şart — aynı çift için iki ayrı
+    // sohbet doğmasın diye.
+    match /threads/{threadId} {
+
+      function thread() {
+        return get(/databases/$(database)/documents/threads/$(threadId)).data;
+      }
+
+      // DM'de üyelik belgede sabittir. Flock sohbetinde CANLI olarak flock
+      // belgesinden okunur: sonradan katılan okuyabilsin, ayrılan okuyamasın.
+      //
+      // Üçlü operatör yerine kısa devre yapan && / || kullanılıyor: DM
+      // belgesinde 'flockId' alanı YOK, flockData(t.flockId) o dalda
+      // değerlendirilirse kural hata verip her okumayı reddediyor.
+      function isMemberOf(t) {
+        return request.auth != null
+               && (
+                    (t.kind == 'dm' && request.auth.uid in t.memberUids)
+                    || (t.kind == 'flock'
+                        && request.auth.uid in flockData(t.flockId).memberUids)
+                  );
+      }
+
+      // Mesajlaşma yalnızca KARŞILIKLI beğeniyle açılır — tek yönlü beğeni
+      // kimseye mesaj kutusu açmaz.
+      function mutual(a, b) {
+        return exists(/databases/$(database)/documents/likes/$(a + '_' + b))
+            && exists(/databases/$(database)/documents/likes/$(b + '_' + a));
+      }
+
+      function touched(key) {
+        return key in request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // get ve list AYRI: tek bir 'read' kuralında 'resource == null'
+      // denetimi liste sorgusunda da değerlendiriliyor ve sorguyu
+      // reddediyordu.
+      //
+      // get'te belge YOKKEN de izin veriyoruz: istemci mesaj göndermeden önce
+      // "sohbet açılmış mı" diye bakıyor. Bu denetim olmadan o bakış
+      // reddedilir ve ilk mesaj hiç gönderilemez. Var olmayan belgeden veri
+      // sızmaz.
+      allow get: if request.auth != null
+                 && (resource == null || isMemberOf(resource.data));
+
+      // Sohbetlerim listesi. Firestore liste kurallarını belgeleri okuyarak
+      // değil SORGUYA bakarak doğrular: kuralda sorgunun kısıtlamadığı bir
+      // alan geçerse (burada 'kind') sorgunun tamamı reddedilir. Bu yüzden
+      // koşul, sorgunun kısıtıyla birebir aynı: memberUids array-contains ben.
+      //
+      // Güvenlik açığı yok — 'memberUids' yalnızca DM belgelerinde dolu; flock
+      // sohbetinde üyelik flock belgesinden okunduğu için bu alan hiç yazılmaz.
+      allow list: if request.auth != null
+                  && request.auth.uid in resource.data.memberUids;
+
+      allow create: if request.auth != null
+        // Okundu damgası kendi adına başlar; karşı tarafınkini kuramazsın.
+        && request.resource.data.seenAt is map
+        && request.resource.data.seenAt.keys().hasOnly([request.auth.uid])
+        && (
+          (
+            request.resource.data.kind == 'dm'
+            && request.resource.data.memberUids is list
+            && request.resource.data.memberUids.size() == 2
+            && request.auth.uid in request.resource.data.memberUids
+            && request.resource.data.memberUids[0] < request.resource.data.memberUids[1]
+            && threadId == 'dm_' + request.resource.data.memberUids[0]
+                 + '_' + request.resource.data.memberUids[1]
+            && mutual(request.resource.data.memberUids[0],
+                      request.resource.data.memberUids[1])
+          )
+          ||
+          (
+            request.resource.data.kind == 'flock'
+            && request.resource.data.flockId is string
+            && threadId == 'flock_' + request.resource.data.flockId
+            && request.auth.uid in flockData(request.resource.data.flockId).memberUids
+          )
+        );
+
+      // Yalnızca "son mesaj" özeti ve okundu damgaları değişir; tür, üyelik ve
+      // flock bağı sabit kalır — sohbet sonradan başka bir sohbete dönüşemez.
+      allow update: if isMemberOf(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['lastText', 'lastFrom', 'lastAt', 'seenAt'])
+        // Özeti değiştiren, o mesajın göndericisi olmalı.
+        && (!touched('lastFrom') || request.resource.data.lastFrom == request.auth.uid)
+        // Okundu damgası yalnızca kendine yazılır — başkasının rozetini
+        // silemezsin.
+        && (!touched('seenAt')
+            || request.resource.data.seenAt.diff(resource.data.seenAt)
+                 .affectedKeys().hasOnly([request.auth.uid]));
+
+      allow delete: if false;
+
+      match /messages/{msgId} {
+        // Sohbet belgesi henüz açılmamışsa (kimse yazmamışsa) mesaj sorgusu
+        // BOŞ döner; bunu reddetmek ekranda sahte bir hata çıkarır. Belgesiz
+        // bir yola mesaj yazılamadığı için (create thread'in varlığını şart
+        // koşuyor) burada okunacak bir şey de yok.
+        allow read: if request.auth != null
+                    && (!exists(/databases/$(database)/documents/threads/$(threadId))
+                        || isMemberOf(thread()));
+        allow create: if isMemberOf(thread())
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000;
+        // Gönderilmiş mesaj DEĞİŞTİRİLEMEZ: şikayet incelemesi sağlam bir
+        // kayda dayansın. Kendi mesajını silebilirsin.
+        allow update: if false;
+        allow delete: if request.auth != null && resource.data.from == request.auth.uid;
+      }
+    }
+
     // Diğer her şey varsayılan olarak kapalı.
     match /{document=**} {
       allow read, write: if false;
